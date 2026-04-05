@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using EducationWebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDomainServices();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
