@@ -2,9 +2,9 @@ namespace EducationWebApi;
 
 public interface IEventsService
 {
-    List<Event> GetEvents();
-    Event? GetEvent(Guid id);
-    void AddEvent(Event item);
-    bool ChangeEvent(Event item, out bool success);
-    bool RemoveEvent(Guid id, out bool success);
+    List<EventDto> GetEvents();
+    EventDto? GetEvent(Guid id);
+    void AddEvent(EventRequestDto item);
+    bool ChangeEvent(Guid id, EventRequestDto item);
+    bool RemoveEvent(Guid id);
 }

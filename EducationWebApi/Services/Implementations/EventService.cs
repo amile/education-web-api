@@ -7,46 +7,44 @@ public class EventsService : IEventsService
 {
     public static List<Event> Events { get; set; } = [];
 
-    public List<Event> GetEvents()
+    public List<EventDto> GetEvents()
     {
-        return Events;
+        return Events.Select(item => item.ToApi()).ToList();
     }
 
-    public Event? GetEvent(Guid id)
+    public EventDto? GetEvent(Guid id)
     {
-        return Events.FirstOrDefault(item => item.Id == id);
+        return Events.FirstOrDefault(item => item.Id == id)?.ToApi();
     }
 
-    public void AddEvent(Event item)
+    public void AddEvent(EventRequestDto item)
     {
-        Events.Add(item);
+        Events.Add(Event.FromApi(item));
     }
 
-    public bool ChangeEvent(Event item, out bool success)
+    public bool ChangeEvent(Guid id, EventRequestDto item)
     {
-        success = true;
-        var index = Events.FindIndex(_item => _item.Id == item.Id);
-
-        if (index == -1)
-        {
-            success = false;
-        }
-
-        Events[index] = item;
-        return success;
-    }
-
-    public bool RemoveEvent(Guid id, out bool success)
-    {
-        success = true;
         var index = Events.FindIndex(_item => _item.Id == id);
 
         if (index == -1)
         {
-            success = false;
+            return false;
+        }
+
+        Events[index] = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt);
+        return true;
+    }
+
+    public bool RemoveEvent(Guid id)
+    {
+        var index = Events.FindIndex(_item => _item.Id == id);
+
+        if (index == -1)
+        {
+            return false;
         }
 
         Events.RemoveAt(index);
-        return success;
+        return true;
     }
 }
