@@ -9,41 +9,34 @@ namespace EducationWebApi;
 public class EventsController(IEventsService _eventsService)
 {
     [HttpGet]
-    public ActionResult<List<EventDto>> GetAllEvents()
+    public ActionResult<PaginatedResultDto<EventDto>> GetAllEvents(
+        [FromQuery] EventFilterDto filter,
+        [FromQuery] PagingRequestDto pagingRequest
+    )
     {
-        return _eventsService.GetEvents();
+        return _eventsService.GetEvents(filter, pagingRequest);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<EventDto> GetBuildingByIndex(Guid id)
+    public ActionResult<EventDto> GetEvent(Guid id)
     {
         var result = _eventsService.GetEvent(id);
-
-        if (result is null)
-        {
-            return new NotFoundResult();
-        }
 
         return result;
     }
 
     [HttpPost]
-    public IActionResult Post([FromBody] EventRequestDto item)
+    public ActionResult<Guid> Post([FromBody] EventRequestDto item)
     {
-        _eventsService.AddEvent(item);
-
-        return new CreatedResult();
+        return _eventsService.AddEvent(item).Id;
     }
 
     [HttpPut("{id}")]
-    public IActionResult Put(Guid id, [FromBody] EventRequestDto item)
+    public ActionResult<EventDto> Put(Guid id, [FromBody] EventRequestDto item)
     {
-        if (!_eventsService.ChangeEvent(id, item))
-        {
-            return new NotFoundResult();
-        }
+        var result = _eventsService.ChangeEvent(id, item);
 
-        return new NoContentResult();
+        return result;
     }
 
     [HttpDelete("{id}")]
