@@ -29,11 +29,10 @@ public class EventsService : IEventsService
         var filteredItemsResult = filteredItems.ToList();
 
         var items = filteredItemsResult
+            .OrderBy(item => item.StartAt)
             .Skip((pagingRequest.Page - 1) * pagingRequest.PageSize)
             .Take(pagingRequest.PageSize)
-            .Select(item => item.ToApi()).ToArray(); 
-
-        int totalPages = (int)Math.Ceiling((double)filteredItemsResult.Count / pagingRequest.PageSize);
+            .Select(item => item.ToApi()).ToArray();
     
         return new PaginatedResultDto<EventDto>(items, filteredItemsResult.Count, pagingRequest.Page, items.Length);
     }

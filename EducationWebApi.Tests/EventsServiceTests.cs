@@ -236,14 +236,24 @@ public class EventsServiceTests
             _eventsService.AddEvent(item);
         }
 
+        string[] expectedPage1Titles = ["event1", "event2"];
+        string[] expectedPage2Titles = ["event3"];
+
         //Act
-        var actual = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto() { Page = 2, PageSize = 2 });
+        var actualPage1 = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto() { Page = 1, PageSize = 2 });
+        var actualPage2 = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto() { Page = 2, PageSize = 2 });
 
         //Assert
-        Assert.Single(actual.Data);
-        Assert.Equal(3, actual.TotalCount);
-        Assert.Equal(1, actual.PageSize);
-        Assert.Equal(2, actual.CurrentPage);
+
+        Assert.Equal(actualPage1.Data.Select(x => x.Title), expectedPage1Titles);
+        Assert.Equal(3, actualPage1.TotalCount);
+        Assert.Equal(2, actualPage1.PageSize);
+        Assert.Equal(1, actualPage1.CurrentPage);
+
+        Assert.Equal(actualPage2.Data.Select(x => x.Title), expectedPage2Titles);
+        Assert.Equal(3, actualPage2.TotalCount);
+        Assert.Equal(1, actualPage2.PageSize);
+        Assert.Equal(2, actualPage2.CurrentPage);
     }
 
     [Fact]
