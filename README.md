@@ -16,3 +16,9 @@ http://localhost:5003/health
 
 ## Swagger
 http://localhost:5003/swagger
+
+## Запуск тестов
+dotnet test
+
+## Формат ошибок
+Для описания ошибок используется Problem Details (RFC 7807)
