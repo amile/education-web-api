@@ -2,6 +2,6 @@ namespace EducationWebApi;
 
 public interface IBookingService
 {
-    Task<Guid> CreateBookingAsync(Guid eventId);
-    Task<Booking> GetBookingByIdAsync(Guid bookingId);
+    Task<BookingDto> CreateBookingAsync(Guid eventId);
+    Task<BookingDto?> GetBookingByIdAsync(Guid bookingId);
 }

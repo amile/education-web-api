@@ -9,15 +9,18 @@ public class BookingService : IBookingService
         _bookingRepository = bookingRepository;
     }
 
-    public async Task<Booking> GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingDto?> GetBookingByIdAsync(Guid bookingId)
     {
         var booking = await _bookingRepository.GetById(bookingId);
 
-        return booking ?? throw new KeyNotFoundException($"Booking Id: {bookingId} not found");
+        return booking?.ToApi();
     }
 
-    public async Task<Guid> CreateBookingAsync(Guid eventId)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId)
     {
-        return await _bookingRepository.Add(eventId);
+
+        var booking = await _bookingRepository.Add(eventId);
+
+        return booking.ToApi();
     }
 }
