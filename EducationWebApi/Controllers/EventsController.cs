@@ -6,14 +6,14 @@ namespace EducationWebApi;
 [ApiController]
 [Route("api/[controller]")]
 
-public class EventsController() : ControllerBase
+public class EventsController : ControllerBase
 {
     private readonly IEventsService _eventsService;
     private readonly IBookingService _bookingService;
     public EventsController(
         IEventsService eventsService,
         IBookingService bookingService
-    ) : this()
+    )
     {
         _eventsService = eventsService;
         _bookingService = bookingService;
