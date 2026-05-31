@@ -17,10 +17,10 @@ public class BookingProcessService : BackgroundService
     {
         while (!ct.IsCancellationRequested)
         {
+            var pending = await _bookingRepository.GetPending();
+
             try
             {
-                var pending = await _bookingRepository.GetPending();
-
                 if (pending is not null)
                 {
                     _logger.LogInformation("Start booking event id: {id}", pending.Id);
@@ -28,9 +28,6 @@ public class BookingProcessService : BackgroundService
                     await Task.Delay(TimeSpan.FromSeconds(2), ct);
 
                     pending.Status = BookingStatus.Confirmed;
-                    pending.ProcessedAt = DateTime.UtcNow;
-
-                    await _bookingRepository.TryUpdate(pending);
 
                     _logger.LogInformation("Booking event id: {id} succeeded", pending.Id);
                 }
@@ -42,6 +39,19 @@ public class BookingProcessService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Booking event error");
+            }
+            finally
+            {
+                if (pending is not null)
+                {
+                    if (pending.Status != BookingStatus.Confirmed)
+                    {
+                        pending.Status = BookingStatus.Rejected;
+                    }
+
+                    pending.ProcessedAt = DateTime.UtcNow;
+                    await _bookingRepository.TryUpdate(pending);
+                }
             }
 
             await Task.Delay(TimeSpan.FromSeconds(4), ct);
