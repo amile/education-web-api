@@ -6,6 +6,9 @@ public static class ServiceCollectionExtensions
     {
         sc.AddScoped<IEventsService, EventsService>();
 
+        sc.AddScoped<IBookingRepository, BookingRepository>();
+        sc.AddScoped<IBookingService, BookingService>();
+
         return sc;
     }
 }
