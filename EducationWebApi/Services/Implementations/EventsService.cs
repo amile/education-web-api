@@ -5,11 +5,16 @@ namespace EducationWebApi;
 
 public class EventsService : IEventsService
 {
-    public static ConcurrentDictionary<Guid, Event> Events { get; set; } = new ConcurrentDictionary<Guid, Event>();
+    private readonly IEventsRepository _eventsRepository;
+
+    public EventsService(IEventsRepository eventsRepository)
+    {
+        _eventsRepository = eventsRepository;
+    }
 
     public PaginatedResultDto<EventDto> GetEvents(EventFilterDto filter, PagingRequestDto pagingRequest)
     {
-        var filteredItems = Events.Values.AsEnumerable();
+        var filteredItems = _eventsRepository.GetAllEvents();
             
         if (!string.IsNullOrWhiteSpace(filter.Title))
         {
@@ -39,7 +44,7 @@ public class EventsService : IEventsService
 
     public EventDto GetEvent(Guid id)
     {
-        if (!Events.TryGetValue(id, out var item))
+        if (!_eventsRepository.TryGetEvent(id, out var item))
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
@@ -49,30 +54,24 @@ public class EventsService : IEventsService
     public EventDto AddEvent(EventRequestDto item)
     {
         var newEvent = Event.FromApi(item);
-        Events.TryAdd(newEvent.Id, newEvent);
+        _eventsRepository.TryAddEvent(newEvent);
 
         return newEvent.ToApi();
     }
 
     public EventDto ChangeEvent(Guid id, EventRequestDto item)
     {
-        if (!Events.ContainsKey(id))
+        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt);
+        if (!_eventsRepository.TryChangeEvent(newEvent))
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
 
-        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt);
-        Events[id] = newEvent;
         return newEvent.ToApi();
     }
 
     public bool RemoveEvent(Guid id)
     {
-        if (!Events.TryRemove(id, out var _))
-        {
-            return false;
-        }
-
-        return true;
+        return _eventsRepository.TryRemoveEvent(id);
     }
 }

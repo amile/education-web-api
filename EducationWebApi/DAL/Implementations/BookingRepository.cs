@@ -20,7 +20,7 @@ public class BookingRepository : IBookingRepository
             Id = Guid.NewGuid(),
             EventId = eventId,
             Status = BookingStatus.Pending,
-            StartAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
 
         _bookings.TryAdd(booking.Id, booking);
@@ -42,6 +42,18 @@ public class BookingRepository : IBookingRepository
     {
         if (_bookings.ContainsKey(booking.Id))
         {
+            _bookings[booking.Id] = booking;
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> TryUpdateStatus(Guid id, BookingStatus status)
+    {
+        if (_bookings.TryGetValue(id, out var booking))
+        {
+            booking.Status = status;
             _bookings[booking.Id] = booking;
             return true;
         }

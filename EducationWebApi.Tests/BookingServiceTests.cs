@@ -1,20 +1,18 @@
-﻿using System.ComponentModel;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-
-namespace EducationWebApi.Tests;
+﻿namespace EducationWebApi.Tests;
 
 public class BookingServiceTests
 {
+    private readonly IEventsRepository _eventsRepository;
     private readonly IEventsService _eventsService;
     private readonly IBookingRepository _bookingRepository;
     private readonly IBookingService _bookingService;
 
     public BookingServiceTests()
     {
-        _eventsService = new EventsService();
+        _eventsRepository = new EventsRepository();
+        _eventsService = new EventsService(_eventsRepository);
         _bookingRepository = new BookingRepository();
-        _bookingService = new BookingService(_bookingRepository);
+        _bookingService = new BookingService(_bookingRepository, _eventsRepository);
     }
 
     [Fact]
@@ -73,17 +71,40 @@ public class BookingServiceTests
     }
 
     [Fact]
+    public async Task BookEvent_WrongEventId()
+    {
+        //Arrange
+        var eventId = Guid.NewGuid();
+
+        //Assert
+        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.CreateBookingAsync(eventId));
+        Assert.Equal($"Event Id: {eventId} not found", error.Message);
+    }
+
+    [Fact]
+    public async Task BookEvent_DeletedEvent()
+    {
+        //Arrange
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventId = _eventsService.AddEvent(eventItem).Id;
+        _eventsService.RemoveEvent(eventId);
+
+        //Assert
+        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.CreateBookingAsync(eventId));
+        Assert.Equal($"Event Id: {eventId} not found", error.Message);
+    }
+
+    [Fact]
     public async Task GetBooking_WrongId()
     {
         //Arrange
         var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         await _bookingService.CreateBookingAsync(eventId);
-
-        //Act
-        var actualBooking = await _bookingService.GetBookingByIdAsync(Guid.NewGuid());
+        var wrongId = Guid.NewGuid();
 
         //Assert
-        Assert.Null(actualBooking);
+        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.GetBookingByIdAsync(wrongId));
+        Assert.Equal($"Booking Id: {wrongId} not found", error.Message);
     }
 }

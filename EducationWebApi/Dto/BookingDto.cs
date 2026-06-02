@@ -3,5 +3,7 @@ namespace EducationWebApi;
 public record BookingDto(
     Guid Id,
     Guid EventId,
-    BookingStatus Status
+    BookingStatus Status,
+    DateTime CreatedAt,
+    DateTime? ProcessedAt
 );

@@ -65,15 +65,8 @@ public class EventsController : ControllerBase
     [HttpPost("{id}/book")]
     public async Task<ActionResult<BookingDto>> Booking(Guid id)
     {
-        var eventItem = _eventsService.GetEvent(id);
-
-        if (eventItem is null)
-        {
-            return new NotFoundResult();
-        }
-
         var booking = await _bookingService.CreateBookingAsync(id);
 
-        return Accepted($"/bookings/{booking.Id}", booking);
+        return Accepted($"/api/bookings/{booking.Id}", booking);
     }
 }

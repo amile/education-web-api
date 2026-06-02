@@ -20,11 +20,6 @@ public class BookingController : ControllerBase
     {
         var booking = await _bookingService.GetBookingByIdAsync(id);
 
-        if (booking is null)
-        {
-            return new NotFoundResult();
-        }
-
         return booking;
     }
 }
