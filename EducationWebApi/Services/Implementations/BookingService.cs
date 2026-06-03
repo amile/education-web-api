@@ -14,7 +14,7 @@ public class BookingService : IBookingService
         _eventsRepository = eventsRepository;
     }
 
-    public async Task<BookingDto?> GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId)
     {
         var booking = await _bookingRepository.GetById(bookingId);
 

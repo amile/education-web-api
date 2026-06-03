@@ -6,7 +6,9 @@ public interface IBookingRepository
 {
     Task<Booking> Add(Guid eventId);
     Task<Booking?> GetById(Guid id);
-    Task<Booking?> GetPending();
+    Task<List<Booking>> GetAllPendingBookings();
     Task<bool> TryUpdate(Booking booking);
     Task<bool> TryUpdateStatus(Guid id, BookingStatus status);
+    Task ConfirmBooking(Guid id);
+    Task RejectBooking(Guid id);
 } 

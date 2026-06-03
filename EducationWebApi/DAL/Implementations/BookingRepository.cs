@@ -33,9 +33,9 @@ public class BookingRepository : IBookingRepository
         return _bookings.GetValueOrDefault(id);
     }
 
-    public async Task<Booking?> GetPending()
+    public async Task<List<Booking>> GetAllPendingBookings()
     {
-        return _bookings.FirstOrDefault(item => item.Value.Status == BookingStatus.Pending).Value;
+        return _bookings.Where(item => item.Value.Status == BookingStatus.Pending).Select(item => item.Value).ToList();
     }
 
     public async Task<bool> TryUpdate(Booking booking)
@@ -54,10 +54,22 @@ public class BookingRepository : IBookingRepository
         if (_bookings.TryGetValue(id, out var booking))
         {
             booking.Status = status;
+            booking.ProcessedAt = DateTime.UtcNow;
             _bookings[booking.Id] = booking;
+
             return true;
         }
 
         return false;
+    }
+
+    public async Task ConfirmBooking(Guid id)
+    {
+        await TryUpdateStatus(id, BookingStatus.Confirmed);
+    }
+
+    public async Task RejectBooking(Guid id)
+    {
+        await TryUpdateStatus(id, BookingStatus.Rejected);
     }
 } 

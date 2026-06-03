@@ -6,11 +6,11 @@ namespace EducationWebApi;
 [ApiController]
 [Route("api/[controller]")]
 
-public class BookingController : ControllerBase
+public class BookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;
 
-    public BookingController(IBookingService bookingService)
+    public BookingsController(IBookingService bookingService)
     {
         _bookingService = bookingService;
     }

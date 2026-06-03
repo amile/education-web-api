@@ -17,44 +17,37 @@ public class BookingProcessService : BackgroundService
     {
         while (!ct.IsCancellationRequested)
         {
-            var pending = await _bookingRepository.GetPending();
+            var bookings = await _bookingRepository.GetAllPendingBookings();
 
-            try
+            foreach (var item in bookings)
             {
-                if (pending is not null)
-                {
-                    _logger.LogInformation("Start booking event id: {id}", pending.Id);
-
-                    await Task.Delay(TimeSpan.FromSeconds(2), ct);
-
-                    pending.Status = BookingStatus.Confirmed;
-
-                    _logger.LogInformation("Booking event id: {id} succeeded", pending.Id);
-                }
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Booking event error");
-            }
-            finally
-            {
-                if (pending is not null)
-                {
-                    if (pending.Status != BookingStatus.Confirmed)
-                    {
-                        pending.Status = BookingStatus.Rejected;
-                    }
-
-                    pending.ProcessedAt = DateTime.UtcNow;
-                    await _bookingRepository.TryUpdate(pending);
-                }
+                await BookEvent(item, ct);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(4), ct);
+        }
+    }
+
+    private async Task BookEvent(Booking booking, CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation("Start booking event id: {id}", booking.Id);
+
+            await Task.Delay(TimeSpan.FromSeconds(2), ct);
+
+            await _bookingRepository.ConfirmBooking(booking.Id);
+
+            _logger.LogInformation("Booking event id: {id} succeeded", booking.Id);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            _logger.LogInformation("Booking event cancelled");
+        }
+        catch (Exception ex)
+        {
+            await _bookingRepository.RejectBooking(booking.Id);
+            _logger.LogError(ex, "Booking event error");
         }
     }
 }

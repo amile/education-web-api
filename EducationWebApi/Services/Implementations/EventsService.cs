@@ -48,7 +48,7 @@ public class EventsService : IEventsService
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
-        return item.ToApi();
+        return item!.ToApi();
     }
 
     public EventDto AddEvent(EventRequestDto item)
