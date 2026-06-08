@@ -6,8 +6,19 @@ namespace EducationWebApi;
 [ApiController]
 [Route("api/[controller]")]
 
-public class EventsController(IEventsService _eventsService)
+public class EventsController : ControllerBase
 {
+    private readonly IEventsService _eventsService;
+    private readonly IBookingService _bookingService;
+    public EventsController(
+        IEventsService eventsService,
+        IBookingService bookingService
+    )
+    {
+        _eventsService = eventsService;
+        _bookingService = bookingService;
+    }
+
     [HttpGet]
     public ActionResult<PaginatedResultDto<EventDto>> GetAllEvents(
         [FromQuery] EventFilterDto filter,
@@ -49,5 +60,13 @@ public class EventsController(IEventsService _eventsService)
         }
 
         return new OkResult(); 
+    }
+
+    [HttpPost("{id}/book")]
+    public async Task<ActionResult<BookingDto>> Booking(Guid id)
+    {
+        var booking = await _bookingService.CreateBookingAsync(id);
+
+        return Accepted($"/api/bookings/{booking.Id}", booking);
     }
 }

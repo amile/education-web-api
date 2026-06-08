@@ -2,11 +2,13 @@
 
 public class EventsServiceTests
 {
+    private readonly IEventsRepository _eventsRepository;
     private readonly IEventsService _eventsService;
 
     public EventsServiceTests()
     {
-        _eventsService = new EventsService();
+        _eventsRepository = new EventsRepository();
+        _eventsService = new EventsService(_eventsRepository);
     }
 
     [Fact]
