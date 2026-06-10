@@ -61,7 +61,7 @@ public class EventsService : IEventsService
 
     public EventDto ChangeEvent(Guid id, EventRequestDto item)
     {
-        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt);
+        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt, item.TotalSeats);
         if (!_eventsRepository.TryChangeEvent(newEvent))
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");

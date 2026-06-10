@@ -19,7 +19,7 @@ public class BookingServiceTests
     public async Task BookEvent_Ok()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
 
         //Act
@@ -35,7 +35,7 @@ public class BookingServiceTests
     public async Task BookEventMultiple_Ok()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
 
         //Act
@@ -56,7 +56,7 @@ public class BookingServiceTests
     public async Task GetBooking_Ok()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         var expectedBooking = await _bookingService.CreateBookingAsync(eventId);
 
@@ -74,7 +74,7 @@ public class BookingServiceTests
     public async Task ConfirmBooking_Ok()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
 
@@ -92,7 +92,7 @@ public class BookingServiceTests
     public async Task RejectBooking_Ok()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
 
@@ -121,7 +121,7 @@ public class BookingServiceTests
     public async Task BookEvent_DeletedEvent()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         _eventsService.RemoveEvent(eventId);
 
@@ -134,7 +134,7 @@ public class BookingServiceTests
     public async Task GetBooking_WrongId()
     {
         //Arrange
-        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var eventItem = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var eventId = _eventsService.AddEvent(eventItem).Id;
         await _bookingService.CreateBookingAsync(eventId);
         var wrongId = Guid.NewGuid();

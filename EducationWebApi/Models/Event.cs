@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace EducationWebApi;
 
@@ -9,21 +11,59 @@ public class Event
     public string? Description { get; set; }
     public required DateTime StartAt { get; set; }
     public required DateTime EndAt { get; set; }
+    public required int TotalSeats { get; set; }
+    public required int AvailableSeats { get; set; }
 
     [SetsRequiredMembers]
-    public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
+    public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
     {
         Id = id;
         Title = title;
         Description = description;
         StartAt = startAt;
         EndAt = endAt;
+        TotalSeats = totalSeats;
+        AvailableSeats = totalSeats;
     }
 
     [SetsRequiredMembers]
-    public Event(string title, string? description, DateTime startAt, DateTime endAt)
-        : this(Guid.NewGuid(), title, description, startAt, endAt) {}
+    public Event(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
+        : this(Guid.NewGuid(), title, description, startAt, endAt, totalSeats) {}
 
-    public static Event FromApi(EventRequestDto item) => new Event(item.Title, item.Description, item.StartAt, item.EndAt);
-    public EventDto ToApi() => new EventDto(Id, Title, Description, StartAt, EndAt);
+    public static Event FromApi(EventRequestDto item)
+    {
+        if (item.TotalSeats <= 0)
+        {
+            throw new ValidationException("Общее количество мест должно быть больше 0");
+        }
+
+        return new Event(item.Title, item.Description, item.StartAt, item.EndAt, item.TotalSeats);
+    }
+
+    public EventDto ToApi() => new EventDto(Id, Title, Description, StartAt, EndAt, TotalSeats, AvailableSeats);
+
+    public bool TryReserveSeats(int count = 1)
+    {
+        var availableSeats = AvailableSeats - count;
+
+        if (availableSeats < 0)
+        {
+            return false;
+        }
+
+        AvailableSeats = availableSeats;
+        return true;
+    }
+
+    public void ReleaseSeats(int count = 1)
+    {
+        var availableSeats = AvailableSeats + count;
+
+        if (availableSeats > TotalSeats)
+        {
+            AvailableSeats = TotalSeats;
+        }
+
+        AvailableSeats = availableSeats;
+    }
 }

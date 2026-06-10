@@ -17,7 +17,7 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
 
         //Act
         var actual = _eventsService.AddEvent(newEvent);
@@ -37,9 +37,9 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -61,7 +61,7 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var id = _eventsService.AddEvent(newEvent).Id;
 
         //Act
@@ -81,9 +81,9 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        var oldEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var oldEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var id = _eventsService.AddEvent(oldEvent).Id;
-        var newEvent = new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) };
+        var newEvent = new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3), TotalSeats = 1 };
 
         //Act
         var actual = _eventsService.ChangeEvent(id, newEvent);
@@ -102,7 +102,7 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) };
+        var newEvent = new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
         var id = _eventsService.AddEvent(newEvent).Id;
 
         //Act
@@ -121,9 +121,9 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -146,9 +146,9 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -171,9 +171,9 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -196,11 +196,11 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 5) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 5), EndAt = new DateTime(2026, 1, 6) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 5), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 5), EndAt = new DateTime(2026, 1, 6), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -229,9 +229,9 @@ public class EventsServiceTests
         //Arrange
         var events = new[]
         {
-            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) },
-            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) },
-            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4) }
+            new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3), TotalSeats = 1 },
+            new EventRequestDto() { Title = "event3", StartAt = new DateTime(2026, 1, 3), EndAt = new DateTime(2026, 1, 4), TotalSeats = 1 }
         };
         foreach (var item in events)
         {
@@ -264,7 +264,7 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        _eventsService.AddEvent(new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) });
+        _eventsService.AddEvent(new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 });
         var id = new Guid();
 
         //Assert
@@ -278,11 +278,15 @@ public class EventsServiceTests
         EventsServiceClear();
 
         //Arrange
-        _eventsService.AddEvent(new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) });
+        _eventsService.AddEvent(new EventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 });
         var id = new Guid();
 
         //Assert
-        var exception = Assert.Throws<KeyNotFoundException>(() => _eventsService.ChangeEvent(id, new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) }));
+        var exception = Assert.Throws<KeyNotFoundException>(() => 
+            _eventsService.ChangeEvent(
+                id, 
+                new EventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 }
+            ));
         Assert.Equal($"Event Id: {id} not found", exception.Message);
     }
 
