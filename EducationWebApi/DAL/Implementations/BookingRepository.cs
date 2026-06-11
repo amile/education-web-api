@@ -13,7 +13,7 @@ public class BookingRepository : IBookingRepository
         _bookings = new ConcurrentDictionary<Guid, Booking>();
     }
 
-    public async Task<Booking> Add(Guid eventId)
+    public Booking Add(Guid eventId)
     {
         var booking = new Booking()
         {
@@ -28,17 +28,17 @@ public class BookingRepository : IBookingRepository
         return booking;
     }
 
-    public async Task<Booking?> GetById(Guid id)
+    public Booking? GetById(Guid id)
     {
         return _bookings.GetValueOrDefault(id);
     }
 
-    public async Task<List<Booking>> GetAllPendingBookings()
+    public List<Booking> GetAllPendingBookings()
     {
         return _bookings.Where(item => item.Value.Status == BookingStatus.Pending).Select(item => item.Value).ToList();
     }
 
-    public async Task<bool> TryUpdate(Booking booking)
+    public bool TryUpdate(Booking booking)
     {
         if (_bookings.ContainsKey(booking.Id))
         {
@@ -49,7 +49,7 @@ public class BookingRepository : IBookingRepository
         return false;
     }
 
-    public async Task<bool> TryUpdateStatus(Guid id, BookingStatus status)
+    public bool TryUpdateStatus(Guid id, BookingStatus status)
     {
         if (_bookings.TryGetValue(id, out var booking))
         {
@@ -63,13 +63,13 @@ public class BookingRepository : IBookingRepository
         return false;
     }
 
-    public async Task ConfirmBooking(Guid id)
+    public void ConfirmBooking(Guid id)
     {
-        await TryUpdateStatus(id, BookingStatus.Confirmed);
+        TryUpdateStatus(id, BookingStatus.Confirmed);
     }
 
-    public async Task RejectBooking(Guid id)
+    public void RejectBooking(Guid id)
     {
-        await TryUpdateStatus(id, BookingStatus.Rejected);
+        TryUpdateStatus(id, BookingStatus.Rejected);
     }
 } 

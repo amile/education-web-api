@@ -3,11 +3,15 @@ using EducationWebApi;
 public class BookingProcessService : BackgroundService
 {
     private readonly IBookingRepository _bookingRepository;
+    private readonly IEventsRepository _eventsRepository;
     private readonly ILogger<BookingProcessService> _logger;
+    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
     public BookingProcessService(
         IBookingRepository bookingRepository,
-        ILogger<BookingProcessService> logger)
+        IEventsRepository eventsRepository,
+        ILogger<BookingProcessService> logger
+    )
     {
         _bookingRepository = bookingRepository;
         _logger = logger;
@@ -17,18 +21,15 @@ public class BookingProcessService : BackgroundService
     {
         while (!ct.IsCancellationRequested)
         {
-            var bookings = await _bookingRepository.GetAllPendingBookings();
-
-            foreach (var item in bookings)
-            {
-                await BookEvent(item, ct);
-            }
+            var pendingBookings = _bookingRepository.GetAllPendingBookings();
+            var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, ct));
+            await Task.WhenAll(tasks);
 
             await Task.Delay(TimeSpan.FromSeconds(4), ct);
         }
     }
 
-    private async Task BookEvent(Booking booking, CancellationToken ct)
+    private async Task ProcessBookingAsync(Booking booking, CancellationToken ct)
     {
         try
         {
@@ -36,9 +37,18 @@ public class BookingProcessService : BackgroundService
 
             await Task.Delay(TimeSpan.FromSeconds(2), ct);
 
-            await _bookingRepository.ConfirmBooking(booking.Id);
+            await _processingSemaphore.WaitAsync();
 
-            _logger.LogInformation("Booking event id: {id} succeeded", booking.Id);
+            if(_eventsRepository.TryGetEvent(booking.EventId, out var _))
+            {
+                _bookingRepository.ConfirmBooking(booking.Id);
+                _logger.LogInformation("Booking event id: {id} succeeded", booking.Id);
+            }
+            else
+            {
+                _bookingRepository.RejectBooking(booking.Id);
+                _logger.LogInformation("Event id: {eventId} not found", booking.EventId);
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -46,8 +56,12 @@ public class BookingProcessService : BackgroundService
         }
         catch (Exception ex)
         {
-            await _bookingRepository.RejectBooking(booking.Id);
+            _bookingRepository.RejectBooking(booking.Id);
             _logger.LogError(ex, "Booking event error");
         }
+        finally
+        {
+            _processingSemaphore.Release();
+        } 
     }
 }

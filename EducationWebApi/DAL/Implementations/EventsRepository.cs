@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EducationWebApi;
 
@@ -12,7 +13,7 @@ public class EventsRepository : IEventsRepository
         return Events.Values.AsEnumerable();
     }
 
-    public bool TryGetEvent(Guid id, out Event? item)
+    public bool TryGetEvent(Guid id, [NotNullWhen(true)] out Event? item)
     {
         return Events.TryGetValue(id, out item);
     }
