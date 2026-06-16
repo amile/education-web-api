@@ -30,7 +30,7 @@ public class Event
     public Event(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
         : this(Guid.NewGuid(), title, description, startAt, endAt, totalSeats) {}
 
-    public static Event FromApi(EventRequestDto item)
+    public static Event CreateFromApi(CreateEventRequestDto item)
     {
         if (item.TotalSeats <= 0)
         {

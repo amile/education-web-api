@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace EducationWebApi;
 
-public class EventRequestDto : IValidatableObject
+public class BaseEventRequestDto : IValidatableObject
 {
     [Required(ErrorMessage = "Наименование события обязательно для заполнения.")]
     public required string Title { get; set; }
@@ -14,7 +13,6 @@ public class EventRequestDto : IValidatableObject
 
     [Required(ErrorMessage = "Дата окончания события обязательна для заполнения.")]
     public required DateTime EndAt { get; set; }
-    public required int TotalSeats { get; set; }
     
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

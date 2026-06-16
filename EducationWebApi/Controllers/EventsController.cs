@@ -37,13 +37,13 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Guid> Post([FromBody] EventRequestDto item)
+    public ActionResult<Guid> Post([FromBody] CreateEventRequestDto item)
     {
         return _eventsService.AddEvent(item).Id;
     }
 
     [HttpPut("{id}")]
-    public ActionResult<EventDto> Put(Guid id, [FromBody] EventRequestDto item)
+    public ActionResult<EventDto> Put(Guid id, [FromBody] UpdateEventRequestDto item)
     {
         var result = _eventsService.ChangeEvent(id, item);
 

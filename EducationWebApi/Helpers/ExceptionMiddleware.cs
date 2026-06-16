@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
 public class GlobalExceptionHandlingMiddleware
@@ -56,6 +57,7 @@ public class GlobalExceptionHandlingMiddleware
         => ex switch
         {
             BadHttpRequestException => StatusCodes.Status400BadRequest,
+            ValidationException => StatusCodes.Status400BadRequest,
             KeyNotFoundException => StatusCodes.Status404NotFound,
             NoAvailableSeatsException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError

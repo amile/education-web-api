@@ -51,21 +51,22 @@ public class EventsService : IEventsService
         return item!.ToApi();
     }
 
-    public EventDto AddEvent(EventRequestDto item)
+    public EventDto AddEvent(CreateEventRequestDto item)
     {
-        var newEvent = Event.FromApi(item);
+        var newEvent = Event.CreateFromApi(item);
         _eventsRepository.TryAddEvent(newEvent);
 
         return newEvent.ToApi();
     }
 
-    public EventDto ChangeEvent(Guid id, EventRequestDto item)
+    public EventDto ChangeEvent(Guid id, UpdateEventRequestDto item)
     {
-        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt, item.TotalSeats);
-        if (!_eventsRepository.TryChangeEvent(newEvent))
+        if (!_eventsRepository.TryGetEvent(id, out var oldEvent))
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
+        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt, oldEvent.TotalSeats);
+        _eventsRepository.TryChangeEvent(newEvent);
 
         return newEvent.ToApi();
     }
