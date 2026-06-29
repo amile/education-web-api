@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using EducationWebApi;
+using EducationWebApi.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDataAccess(builder.Configuration);
+
 builder.Services.AddDomainServices();
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
