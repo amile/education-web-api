@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace EducationWebApi;
 
-public class EventRequestDto : IValidatableObject
+public class BaseEventRequestDto : IValidatableObject
 {
     [Required(ErrorMessage = "Наименование события обязательно для заполнения.")]
     public required string Title { get; set; }

@@ -4,6 +4,7 @@ public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly IEventsRepository _eventsRepository;
+    private readonly object _bookingLock = new();
 
     public BookingService(
         IBookingRepository bookingRepository,
@@ -16,7 +17,7 @@ public class BookingService : IBookingService
 
     public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId)
     {
-        var booking = await _bookingRepository.GetById(bookingId);
+        var booking = _bookingRepository.GetById(bookingId);
 
         if (booking is null)
         {
@@ -28,12 +29,23 @@ public class BookingService : IBookingService
 
     public async Task<BookingDto> CreateBookingAsync(Guid eventId)
     {
-        if (!_eventsRepository.TryGetEvent(eventId, out var _))
-        {
-            throw new KeyNotFoundException($"Event Id: {eventId} not found");
-        }
+        Booking? booking = null;
 
-        var booking = await _bookingRepository.Add(eventId);
+        lock (_bookingLock)
+        {
+            if (!_eventsRepository.TryGetEvent(eventId, out var eventItem))
+            {
+                throw new KeyNotFoundException($"Event Id: {eventId} not found");
+            }
+
+            if (!eventItem.TryReserveSeats())
+            {
+                throw new NoAvailableSeatsException();
+            }
+            _eventsRepository.TryChangeEvent(eventItem);
+
+            booking = _bookingRepository.Add(eventId);
+        }
 
         return booking.ToApi();
     }
