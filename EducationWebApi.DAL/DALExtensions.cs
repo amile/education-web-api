@@ -13,8 +13,8 @@ public static class ServiceCollectionExtensions
 
         sc.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString)
-                .LogTo(Console.WriteLine, LogLevel.Information)
-                .EnableDetailedErrors() 
+                // .LogTo(Console.WriteLine, LogLevel.Information)
+                // .EnableDetailedErrors() 
         );
 
         return sc;

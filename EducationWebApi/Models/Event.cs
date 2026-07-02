@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http.Features;
+using EducationWebApi.DAL;
 
 namespace EducationWebApi;
 
@@ -13,6 +13,9 @@ public class Event
     public required DateTime EndAt { get; set; }
     public required int TotalSeats { get; set; }
     public required int AvailableSeats { get; set; }
+
+
+    public Event() {}
 
     [SetsRequiredMembers]
     public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
@@ -42,6 +45,28 @@ public class Event
 
     public EventDto ToApi() => new EventDto(Id, Title, Description, StartAt, EndAt, TotalSeats, AvailableSeats);
 
+    public static Event FromDb(EventEntity dbModel) => new Event()
+    {
+        Id = dbModel.Id, 
+        Title = dbModel.Title, 
+        Description = dbModel.Description, 
+        StartAt = dbModel.StartAt, 
+        EndAt = dbModel.EndAt, 
+        TotalSeats = dbModel.TotalSeats, 
+        AvailableSeats = dbModel.AvailableSeats
+    };
+
+    public EventEntity ToDb() => new EventEntity()
+    {
+        Id = Id,
+        Title = Title,
+        Description = Description,
+        StartAt = StartAt,
+        EndAt = EndAt,
+        TotalSeats = TotalSeats,
+        AvailableSeats = AvailableSeats
+    };
+
     public bool TryReserveSeats(int count = 1)
     {
         var availableSeats = AvailableSeats - count;
@@ -63,7 +88,9 @@ public class Event
         {
             AvailableSeats = TotalSeats;
         }
-
-        AvailableSeats = availableSeats;
+        else
+        {
+            AvailableSeats = availableSeats;
+        }
     }
 }
