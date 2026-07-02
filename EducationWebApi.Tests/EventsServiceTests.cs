@@ -1,26 +1,36 @@
-﻿namespace EducationWebApi.Tests;
+﻿using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace EducationWebApi.Tests;
 
 public class EventsServiceTests
 {
-    private readonly IEventsRepository _eventsRepository;
+    private readonly ServiceProvider _serviceProvider;
+    private readonly IServiceScope _scope;
     private readonly IEventsService _eventsService;
 
     public EventsServiceTests()
     {
-        _eventsRepository = new EventsRepository();
-        _eventsService = new EventsService(_eventsRepository);
+        var dbName = Guid.NewGuid().ToString();
+        var services = new ServiceCollection();
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseInMemoryDatabase(dbName));
+        services.AddScoped<IEventsService, EventsService>();
+
+        _serviceProvider = services.BuildServiceProvider();
+        _scope = _serviceProvider.CreateScope();
+        _eventsService = _scope.ServiceProvider.GetRequiredService<IEventsService>();
     }
 
     [Fact]
-    public void CreateEvent_Ok()
+    public async Task CreateEvent_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
         var newEvent = new CreateEventRequestDto() { Title = "event1", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = 1 };
 
         //Act
-        var actual = _eventsService.AddEvent(newEvent);
+        var actual = await _eventsService.AddEventAsync(newEvent);
 
         //Assert
         Assert.NotNull(actual);
@@ -32,10 +42,8 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetAllEvents_Ok()
+    public async Task GetAllEvents_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
         var events = new[]
         {
@@ -45,11 +53,11 @@ public class EventsServiceTests
         };
         foreach (var item in events)
         {
-            _eventsService.AddEvent(item);
+            await _eventsService.AddEventAsync(item);
         }
 
         //Act
-        var actual = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto());
+        var actual = await _eventsService.GetEventsAsync(new EventFilterDto(), new PagingRequestDto());
 
         //Assert
         Assert.Equal(events.Length, actual.Data.Length);
@@ -58,15 +66,13 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetEvent_Ok()
+    public async Task GetEvent_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        var id = CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        var id = await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
 
         //Act
-        var actual = _eventsService.GetEvent(id);
+        var actual = await _eventsService.GetEventAsync(id);
 
         //Assert
         Assert.NotNull(actual);
@@ -77,16 +83,14 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void UpdateEvent_Ok()
+    public async Task UpdateEvent_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        var id = CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        var id = await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
         var newEvent = new UpdateEventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 2), EndAt = new DateTime(2026, 1, 3) };
 
         //Act
-        var actual = _eventsService.ChangeEvent(id, newEvent);
+        var actual = await _eventsService.ChangeEventAsync(id, newEvent);
 
         //Assert
         Assert.NotNull(actual);
@@ -97,33 +101,29 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void RemoveEvent_Ok()
+    public async Task RemoveEvent_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        var id = CreateEvent("event1");
+        var id = await CreateEvent("event1");
 
         //Act
-        var removeResult = _eventsService.RemoveEvent(id);
+        var removeResult = await _eventsService.RemoveEventAsync(id);
 
         //Assert
         Assert.True(removeResult);
-        Assert.Throws<KeyNotFoundException>(() => _eventsService.GetEvent(id));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _eventsService.GetEventAsync(id));
     }
 
     [Fact]
-    public void GetAllEvents_FilterByTitle_Ok()
+    public async Task GetAllEvents_FilterByTitle_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event3", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event3", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
 
         //Act
-        var actual = _eventsService.GetEvents(new EventFilterDto() { Title = "event2" }, new PagingRequestDto());
+        var actual = await _eventsService.GetEventsAsync(new EventFilterDto() { Title = "event2" }, new PagingRequestDto());
 
         //Assert
         Assert.Single(actual.Data);
@@ -131,17 +131,15 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetAllEvents_FilterByStartAt_Ok()
+    public async Task GetAllEvents_FilterByStartAt_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
-        CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
+        await CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
 
         //Act
-        var actual = _eventsService.GetEvents(new EventFilterDto() { From = new DateTime(2026, 1, 2) }, new PagingRequestDto());
+        var actual = await _eventsService.GetEventsAsync(new EventFilterDto() { From = new DateTime(2026, 1, 2) }, new PagingRequestDto());
 
         //Assert
         Assert.Equal(2, actual.Data.Length);
@@ -149,17 +147,15 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetAllEvents_FilterByEndAt_Ok()
+    public async Task GetAllEvents_FilterByEndAt_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
-        CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
+        await CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
 
         //Act
-        var actual = _eventsService.GetEvents(new EventFilterDto() { To = new DateTime(2026, 1, 3) }, new PagingRequestDto());
+        var actual = await _eventsService.GetEventsAsync(new EventFilterDto() { To = new DateTime(2026, 1, 3) }, new PagingRequestDto());
 
         //Assert
         Assert.Equal(2, actual.Data.Length);
@@ -167,19 +163,17 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetAllEvents_FilterMultiple_Ok()
+    public async Task GetAllEvents_FilterMultiple_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 5));
-        CreateEvent("event3", startAt: new DateTime(2026, 1, 5), endAt: new DateTime(2026, 1, 6));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 5));
+        await CreateEvent("event3", startAt: new DateTime(2026, 1, 5), endAt: new DateTime(2026, 1, 6));
 
         //Act
-        var actualResult = _eventsService.GetEvents(
+        var actualResult = await _eventsService.GetEventsAsync(
             new EventFilterDto() { Title = "event2", From = new DateTime(2026, 1, 3), To = new DateTime(2026, 1, 4) }, 
             new PagingRequestDto()
         );
@@ -193,24 +187,21 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetAllEvents_Paging_Ok()
+    public async Task GetAllEvents_Paging_Ok()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
-        CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
-        CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event2", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3));
+        await CreateEvent("event3", startAt: new DateTime(2026, 1, 3), endAt: new DateTime(2026, 1, 4));
 
         string[] expectedPage1Titles = ["event1", "event2"];
         string[] expectedPage2Titles = ["event3"];
 
         //Act
-        var actualPage1 = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto() { Page = 1, PageSize = 2 });
-        var actualPage2 = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto() { Page = 2, PageSize = 2 });
+        var actualPage1 = await _eventsService.GetEventsAsync(new EventFilterDto(), new PagingRequestDto() { Page = 1, PageSize = 2 });
+        var actualPage2 = await _eventsService.GetEventsAsync(new EventFilterDto(), new PagingRequestDto() { Page = 2, PageSize = 2 });
 
         //Assert
-
         Assert.Equal(actualPage1.Data.Select(x => x.Title), expectedPage1Titles);
         Assert.Equal(3, actualPage1.TotalCount);
         Assert.Equal(2, actualPage1.PageSize);
@@ -223,47 +214,34 @@ public class EventsServiceTests
     }
 
     [Fact]
-    public void GetEvent_WrongId()
+    public async Task GetEvent_WrongId()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1");
+        await CreateEvent("event1");
         var id = new Guid();
 
         //Assert
-        var exception = Assert.Throws<KeyNotFoundException>(() => _eventsService.GetEvent(id));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _eventsService.GetEventAsync(id));
         Assert.Equal($"Event Id: {id} not found", exception.Message);
     }
 
     [Fact]
-    public void UpdateEvent_WrongId()
+    public async Task UpdateEvent_WrongId()
     {
-        EventsServiceClear();
-
         //Arrange
-        CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
+        await CreateEvent("event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 2));
         var id = new Guid();
 
         //Assert
-        var exception = Assert.Throws<KeyNotFoundException>(() => 
-            _eventsService.ChangeEvent(
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => 
+            _eventsService.ChangeEventAsync(
                 id, 
                 new UpdateEventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) }
             ));
         Assert.Equal($"Event Id: {id} not found", exception.Message);
     }
 
-    private void EventsServiceClear()
-    {
-        var events = _eventsService.GetEvents(new EventFilterDto(), new PagingRequestDto());
-        foreach (var item in events.Data)
-        {
-            _eventsService.RemoveEvent(item.Id);
-        }
-    }
-
-    private Guid CreateEvent(string title, DateTime? startAt = null, DateTime? endAt = null, int totalSeats = 1)
+    private async Task<Guid> CreateEvent(string title, DateTime? startAt = null, DateTime? endAt = null, int totalSeats = 1)
     {
         var eventSource = new CreateEventRequestDto()
         { 
@@ -272,7 +250,7 @@ public class EventsServiceTests
             EndAt = endAt ?? new DateTime(2026, 1, 2), 
             TotalSeats = totalSeats 
         };
-        var result = _eventsService.AddEvent(eventSource);
+        var result = await _eventsService.AddEventAsync(eventSource);
 
         return result.Id;
     }
