@@ -1,52 +1,71 @@
+using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
+
 namespace EducationWebApi;
 
 public class BookingService : IBookingService
 {
-    private readonly IBookingRepository _bookingRepository;
-    private readonly IEventsRepository _eventsRepository;
-    private readonly object _bookingLock = new();
+    private readonly AppDbContext _dbContext;
+    private static readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
     public BookingService(
-        IBookingRepository bookingRepository,
-        IEventsRepository eventsRepository
+        AppDbContext dbContext
     )
     {
-        _bookingRepository = bookingRepository;
-        _eventsRepository = eventsRepository;
+        _dbContext = dbContext;
     }
 
     public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId)
     {
-        var booking = _bookingRepository.GetById(bookingId);
+        var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(e => e.Id == bookingId);
 
-        if (booking is null)
+        if (dbBooking is null)
         {
             throw new KeyNotFoundException($"Booking Id: {bookingId} not found");
         }
 
-        return booking.ToApi();
+        return Booking.FromDb(dbBooking).ToApi();
     }
 
-    public async Task<BookingDto> CreateBookingAsync(Guid eventId)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken = default)
     {
-        Booking? booking = null;
+        await _processingSemaphore.WaitAsync();
 
-        lock (_bookingLock)
+        try
         {
-            if (!_eventsRepository.TryGetEvent(eventId, out var eventItem))
+            var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (dbEvent is null)
             {
                 throw new KeyNotFoundException($"Event Id: {eventId} not found");
             }
 
-            if (!eventItem.TryReserveSeats())
+            var domainEvent = Event.FromDb(dbEvent);
+
+            if (!domainEvent.TryReserveSeats())
             {
                 throw new NoAvailableSeatsException();
             }
-            _eventsRepository.TryChangeEvent(eventItem);
 
-            booking = _bookingRepository.Add(eventId);
+            dbEvent.AvailableSeats = domainEvent.AvailableSeats;
+            _dbContext.Events.Update(dbEvent);
+
+            var booking = new Booking()
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Status = BookingStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+            };
+            await _dbContext.Bookings.AddAsync(booking.ToDb(), cancellationToken);
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return booking.ToApi();
         }
-
-        return booking.ToApi();
+        finally
+        {
+            _processingSemaphore.Release();
+        }
     }
 }

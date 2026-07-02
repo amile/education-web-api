@@ -1,61 +1,46 @@
-using System.Linq;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationWebApi;
 
 public class BookingRepository : IBookingRepository
 {
-    private readonly ConcurrentDictionary<Guid, Booking> _bookings;
+    private readonly AppDbContext _dbContext;
 
-    public BookingRepository()
+    public BookingRepository(AppDbContext dbContext)
     {
-        _bookings = new ConcurrentDictionary<Guid, Booking>();
+        _dbContext = dbContext;
     }
 
-    public Booking Add(Guid eventId)
+    public async Task<Booking> Add(Guid eventId)
     {
-        var booking = new Booking()
+        var dbBooking = new BookingEntity()
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
-            Status = BookingStatus.Pending,
+            Status = BookingStatus.Pending.ToString(),
             CreatedAt = DateTime.UtcNow,
         };
 
-        _bookings.TryAdd(booking.Id, booking);
+        await _dbContext.Bookings.AddAsync(dbBooking);
 
-        return booking;
+        return Booking.FromDb(dbBooking);
     }
 
-    public Booking? GetById(Guid id)
+    public async Task<Booking?> GetById(Guid id)
     {
-        return _bookings.GetValueOrDefault(id);
+        var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+
+        return dbBooking is not null ? Booking.FromDb(dbBooking) : null;
     }
 
-    public List<Booking> GetAllPendingBookings()
+    public async Task<bool> TryUpdate(Booking booking)
     {
-        return _bookings.Where(item => item.Value.Status == BookingStatus.Pending).Select(item => item.Value).ToList();
-    }
+        var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == booking.Id);
 
-    public bool TryUpdate(Booking booking)
-    {
-        if (_bookings.ContainsKey(booking.Id))
+        if (dbBooking is not null)
         {
-            _bookings[booking.Id] = booking;
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool TryUpdateStatus(Guid id, BookingStatus status)
-    {
-        if (_bookings.TryGetValue(id, out var booking))
-        {
-            booking.Status = status;
-            booking.ProcessedAt = DateTime.UtcNow;
-            _bookings[booking.Id] = booking;
+            _dbContext.Bookings.Update(dbBooking);
 
             return true;
         }
@@ -63,13 +48,34 @@ public class BookingRepository : IBookingRepository
         return false;
     }
 
-    public void ConfirmBooking(Guid id)
+    public async Task<bool> TryUpdateStatus(Guid id, BookingStatus status)
     {
-        TryUpdateStatus(id, BookingStatus.Confirmed);
+        var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+
+        if (dbBooking is not null)
+        {
+            dbBooking.Status = status.ToString();
+            dbBooking.ProcessedAt = DateTime.UtcNow;
+            _dbContext.Bookings.Update(dbBooking);
+
+            return true;
+        }
+
+        return false;
     }
 
-    public void RejectBooking(Guid id)
+    public async Task ConfirmBooking(Guid id)
     {
-        TryUpdateStatus(id, BookingStatus.Rejected);
+        await TryUpdateStatus(id, BookingStatus.Confirmed);
+    }
+
+    public async Task RejectBooking(Guid id)
+    {
+        await TryUpdateStatus(id, BookingStatus.Rejected);
+    }
+
+    public async Task SaveChanges()
+    {
+        await _dbContext.SaveChangesAsync();
     }
 } 

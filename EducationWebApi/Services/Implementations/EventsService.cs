@@ -1,20 +1,21 @@
-using System.Collections.Concurrent;
 using System.Data;
+using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationWebApi;
 
 public class EventsService : IEventsService
 {
-    private readonly IEventsRepository _eventsRepository;
+    private readonly AppDbContext _dbContext;
 
-    public EventsService(IEventsRepository eventsRepository)
+    public EventsService(AppDbContext dbContext)
     {
-        _eventsRepository = eventsRepository;
+        _dbContext = dbContext;
     }
 
-    public PaginatedResultDto<EventDto> GetEvents(EventFilterDto filter, PagingRequestDto pagingRequest)
+    public async Task<PaginatedResultDto<EventDto>> GetEventsAsync(EventFilterDto filter, PagingRequestDto pagingRequest)
     {
-        var filteredItems = _eventsRepository.GetAllEvents();
+        var filteredItems = _dbContext.Events.AsQueryable();
             
         if (!string.IsNullOrWhiteSpace(filter.Title))
         {
@@ -37,42 +38,65 @@ public class EventsService : IEventsService
             .OrderBy(item => item.StartAt)
             .Skip((pagingRequest.Page - 1) * pagingRequest.PageSize)
             .Take(pagingRequest.PageSize)
-            .Select(item => item.ToApi()).ToArray();
+            .Select(item => Event.FromDb(item).ToApi())
+            .ToArray();
     
         return new PaginatedResultDto<EventDto>(items, filteredItemsResult.Count, pagingRequest.Page, items.Length);
     }
 
-    public EventDto GetEvent(Guid id)
+    public async Task<EventDto> GetEventAsync(Guid id)
     {
-        if (!_eventsRepository.TryGetEvent(id, out var item))
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (dbEvent is null)
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
-        return item!.ToApi();
+
+        return Event.FromDb(dbEvent).ToApi();
     }
 
-    public EventDto AddEvent(CreateEventRequestDto item)
+    public async Task<EventDto> AddEventAsync(CreateEventRequestDto item)
     {
         var newEvent = Event.CreateFromApi(item);
-        _eventsRepository.TryAddEvent(newEvent);
+        await _dbContext.AddAsync(newEvent.ToDb());
+        await _dbContext.SaveChangesAsync();
 
         return newEvent.ToApi();
     }
 
-    public EventDto ChangeEvent(Guid id, UpdateEventRequestDto item)
+    public async Task<EventDto> ChangeEventAsync(Guid id, UpdateEventRequestDto item)
     {
-        if (!_eventsRepository.TryGetEvent(id, out var oldEvent))
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (dbEvent is null)
         {
             throw new KeyNotFoundException($"Event Id: {id} not found");
         }
-        var newEvent = new Event(id, item.Title, item.Description, item.StartAt, item.EndAt, oldEvent.TotalSeats);
-        _eventsRepository.TryChangeEvent(newEvent);
 
-        return newEvent.ToApi();
+        dbEvent.Title = item.Title;
+        dbEvent.Description = item.Description;
+        dbEvent.StartAt = item.StartAt;
+        dbEvent.EndAt = item.EndAt;
+
+        _dbContext.Events.Update(dbEvent);
+        await _dbContext.SaveChangesAsync();
+
+        return Event.FromDb(dbEvent).ToApi();
     }
 
-    public bool RemoveEvent(Guid id)
+    public async Task<bool> RemoveEventAsync(Guid id)
     {
-        return _eventsRepository.TryRemoveEvent(id);
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (dbEvent is null)
+        {
+            return false;
+        }
+
+        _dbContext.Events.Remove(dbEvent);
+        await _dbContext.SaveChangesAsync();
+
+        return true;
     }
 }
