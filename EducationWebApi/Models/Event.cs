@@ -43,6 +43,16 @@ public class Event
         return new Event(item.Title, item.Description, item.StartAt, item.EndAt, item.TotalSeats);
     }
 
+    public Event UpdateFromApi(UpdateEventRequestDto item)
+    {
+        Title = item.Title;
+        Description = item.Description;
+        StartAt = item.StartAt;
+        EndAt = item.EndAt;
+
+        return this;
+    }
+
     public EventDto ToApi() => new EventDto(Id, Title, Description, StartAt, EndAt, TotalSeats, AvailableSeats);
 
     public static Event FromDb(EventEntity dbModel) => new Event()

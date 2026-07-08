@@ -138,8 +138,8 @@ public class BookingServiceTests
         var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
 
         //Act
-        await _bookingRepository.ConfirmBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
+        await _bookingRepository.ConfirmBookingAsync(pendingBooking.Id);
+        await _bookingRepository.SaveChangesAsync();
         var confirmedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
 
         //Assert
@@ -157,8 +157,8 @@ public class BookingServiceTests
         var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
 
         //Act
-        await _bookingRepository.RejectBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
+        await _bookingRepository.RejectBookingAsync(pendingBooking.Id);
+        await _bookingRepository.SaveChangesAsync();
         var rejectedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
 
         //Assert

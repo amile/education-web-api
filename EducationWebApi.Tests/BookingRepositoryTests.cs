@@ -28,13 +28,13 @@ public class BookingRepositoryTests
     {
         //Arrange
         var eventId = Guid.NewGuid();
-        var pendingBooking = await _bookingRepository.Add(eventId);
-        await _bookingRepository.SaveChanges();
+        var pendingBooking = await _bookingRepository.AddBookingAsync(eventId);
+        await _bookingRepository.SaveChangesAsync();
 
         //Act
-        await _bookingRepository.ConfirmBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
-        var confirmedBooking = await _bookingRepository.GetById(pendingBooking.Id);
+        await _bookingRepository.ConfirmBookingAsync(pendingBooking.Id);
+        await _bookingRepository.SaveChangesAsync();
+        var confirmedBooking = await _bookingRepository.GetBookingByIdAsync(pendingBooking.Id);
 
         //Assert
         Assert.NotNull(confirmedBooking);
@@ -49,13 +49,13 @@ public class BookingRepositoryTests
     {
         //Arrange
         var eventId = Guid.NewGuid();
-        var pendingBooking = await _bookingRepository.Add(eventId);
-        await _bookingRepository.SaveChanges();
+        var pendingBooking = await _bookingRepository.AddBookingAsync(eventId);
+        await _bookingRepository.SaveChangesAsync();
 
         //Act
-        await _bookingRepository.RejectBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
-        var rejectedBooking = await _bookingRepository.GetById(pendingBooking.Id);
+        await _bookingRepository.RejectBookingAsync(pendingBooking.Id);
+        await _bookingRepository.SaveChangesAsync();
+        var rejectedBooking = await _bookingRepository.GetBookingByIdAsync(pendingBooking.Id);
 
         //Assert
         Assert.NotNull(rejectedBooking);

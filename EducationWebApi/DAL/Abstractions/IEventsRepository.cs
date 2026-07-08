@@ -4,10 +4,10 @@ namespace EducationWebApi;
 
 public interface IEventsRepository
 {
-    Task<IEnumerable<Event>> GetAllEvents();
-    Task<Event?> TryGetEvent(Guid id);
-    Task AddEvent(Event item);
-    Task<bool> TryChangeEvent(Event item);
-    Task<bool> TryRemoveEvent(Guid id);
-    Task SaveChanges();
+    Task<PaginatedResultDto<Event>> GetAllEventsAsync(EventFilterDto filter, PagingRequestDto pagingRequest, CancellationToken ct = default);
+    Task<Event?> GetEventByIdAsync(Guid id, CancellationToken ct = default);
+    Task AddEventAsync(Event item, CancellationToken ct = default);
+    Task ChangeEventAsync(Event item, CancellationToken ct = default);
+    Task RemoveEventAsync(Guid id, CancellationToken ct = default);
+    Task SaveChangesAsync(CancellationToken ct = default);
 } 

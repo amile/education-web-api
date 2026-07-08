@@ -12,7 +12,7 @@ public class BookingRepository : IBookingRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Booking> Add(Guid eventId)
+    public async Task<Booking> AddBookingAsync(Guid eventId, CancellationToken ct = default)
     {
         var dbBooking = new BookingEntity()
         {
@@ -27,54 +27,46 @@ public class BookingRepository : IBookingRepository
         return Booking.FromDb(dbBooking);
     }
 
-    public async Task<Booking?> GetById(Guid id)
+    public async Task<Booking?> GetBookingByIdAsync(Guid id, CancellationToken ct = default)
     {
         var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
 
         return dbBooking is not null ? Booking.FromDb(dbBooking) : null;
     }
 
-    public async Task<bool> TryUpdate(Booking booking)
+    public Task<List<Booking>> GetPendingBookingsAsync(CancellationToken ct = default)
     {
-        var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == booking.Id);
-
-        if (dbBooking is not null)
-        {
-            _dbContext.Bookings.Update(dbBooking);
-
-            return true;
-        }
-
-        return false;
+        return _dbContext.Bookings
+            .Where(item => item.Status == BookingStatus.Pending.ToString())
+            .Select(item => Booking.FromDb(item))
+            .ToListAsync(ct);;
     }
 
-    public async Task<bool> TryUpdateStatus(Guid id, BookingStatus status)
+    public async Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default)
     {
         var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
 
-        if (dbBooking is not null)
+        if (dbBooking is null)
         {
-            dbBooking.Status = status.ToString();
-            dbBooking.ProcessedAt = DateTime.UtcNow;
-            _dbContext.Bookings.Update(dbBooking);
-
-            return true;
+            throw new KeyNotFoundException($"Booking Id: {id} not found");
         }
 
-        return false;
+        dbBooking.Status = status.ToString();
+        dbBooking.ProcessedAt = DateTime.UtcNow;
+        _dbContext.Bookings.Update(dbBooking);
     }
 
-    public async Task ConfirmBooking(Guid id)
+    public Task ConfirmBookingAsync(Guid id, CancellationToken ct = default)
     {
-        await TryUpdateStatus(id, BookingStatus.Confirmed);
+        return UpdateStatusAsync(id, BookingStatus.Confirmed, ct);
     }
 
-    public async Task RejectBooking(Guid id)
+    public Task RejectBookingAsync(Guid id, CancellationToken ct = default)
     {
-        await TryUpdateStatus(id, BookingStatus.Rejected);
+        return UpdateStatusAsync(id, BookingStatus.Rejected, ct);
     }
 
-    public async Task SaveChanges()
+    public async Task SaveChangesAsync(CancellationToken ct = default)
     {
         await _dbContext.SaveChangesAsync();
     }
