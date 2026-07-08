@@ -1,24 +1,22 @@
 using EducationWebApi;
+using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
 
 public class BookingProcessService : BackgroundService
 {
-    private readonly IBookingRepository _bookingRepository;
-    private readonly IEventsRepository _eventsRepository;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<BookingProcessService> _logger;
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
     private const int PollingInterval = 4;
-
     private const int ProcessingDelay = 2;
 
     public BookingProcessService(
-        IBookingRepository bookingRepository,
-        IEventsRepository eventsRepository,
+        IServiceScopeFactory scopeFactory,
         ILogger<BookingProcessService> logger
     )
     {
-        _bookingRepository = bookingRepository;
-        _eventsRepository = eventsRepository;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -26,7 +24,14 @@ public class BookingProcessService : BackgroundService
     {
         while (!ct.IsCancellationRequested)
         {
-            var pendingBookings = _bookingRepository.GetAllPendingBookings();
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            List<Booking> pendingBookings = await dbContext.Bookings
+                .Where(item => item.Status == BookingStatus.Pending.ToString())
+                .Select(item => Booking.FromDb(item))
+                .ToListAsync();
+
             var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, ct));
             await Task.WhenAll(tasks);
 
@@ -36,6 +41,11 @@ public class BookingProcessService : BackgroundService
 
     private async Task ProcessBookingAsync(Booking booking, CancellationToken ct)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var eventsRepository = scope.ServiceProvider.GetRequiredService<IEventsRepository>();
+        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+
         var succeeded = false;
         Event? eventItem = null;
 
@@ -47,9 +57,11 @@ public class BookingProcessService : BackgroundService
 
             await _processingSemaphore.WaitAsync();
 
-            if(_eventsRepository.TryGetEvent(booking.EventId, out eventItem))
+            eventItem = await eventsRepository.TryGetEvent(booking.EventId);
+
+            if (eventItem is not null)
             {
-                _bookingRepository.ConfirmBooking(booking.Id);
+                await bookingRepository.ConfirmBooking(booking.Id);
                 succeeded = true;
                 _logger.LogInformation("Booking event id: {id} succeeded", booking.Id);
             }
@@ -68,18 +80,20 @@ public class BookingProcessService : BackgroundService
         }
         finally
         {
-            _processingSemaphore.Release();
-
             if (!succeeded)
             {
-                _bookingRepository.RejectBooking(booking.Id);
+                await bookingRepository.RejectBooking(booking.Id);
 
                 if (eventItem is not null)
                 {
                     eventItem.ReleaseSeats();
-                    _eventsRepository.TryChangeEvent(eventItem);
+                    await eventsRepository.TryChangeEvent(eventItem);
                 }
             }
+
+            await dbContext.SaveChangesAsync();
+
+            _processingSemaphore.Release();
         } 
     }
 }

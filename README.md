@@ -2,12 +2,20 @@
 
 
 ## Требования
-* [.NET 10.0 SDK](https://microsoft.com)
+* [.NET 10.0 SDK](https://microsoft.com) 
+
+Для работы приложения необходим доступ к базе данных PostgreSQL
+В проекте по умолчанию база разворачивается в docker контейнере (https://docs.docker.com), 
+настройки для подключения к базе прописаны в файле appsettings.json, блоке "ConnectionStrings" -> "Default"
+При запуске приложения схема БД создаётся автоматически через EnsureCreated
+
+Для тестов используется In-Memory Provider
 
 ## Установка
 ```bash
 git clone https://github.com/amile/education-web-api.git
 cd education-web-api
+docker compose up -d
 dotnet build
 dotnet run
 

@@ -1,41 +1,72 @@
 using System.Collections.Concurrent;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
+using EducationWebApi.DAL;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationWebApi;
 
 public class EventsRepository : IEventsRepository
 {
-    private readonly ConcurrentDictionary<Guid, Event> Events = new ConcurrentDictionary<Guid, Event>();
+    private readonly AppDbContext _dbContext;
 
-    public IEnumerable<Event> GetAllEvents()
+    public EventsRepository(AppDbContext dbContext)
     {
-        return Events.Values.AsEnumerable();
+        _dbContext = dbContext;
     }
 
-    public bool TryGetEvent(Guid id, [NotNullWhen(true)] out Event? item)
+    public async Task<IEnumerable<Event>> GetAllEvents()
     {
-        return Events.TryGetValue(id, out item);
+        return _dbContext.Events.Select(item => Event.FromDb(item));
     }
 
-    public bool TryAddEvent(Event item)
+    public async Task<Event?> TryGetEvent(Guid id)
     {
-        return Events.TryAdd(item.Id, item);
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+
+        return dbEvent is not null ? Event.FromDb(dbEvent) : null;
     }
 
-    public bool TryChangeEvent(Event item)
+    public async Task AddEvent(Event item)
     {
-        if (!Events.ContainsKey(item.Id))
+        await _dbContext.AddAsync(item.ToDb());
+    }
+
+    public async Task<bool> TryChangeEvent(Event item)
+    {
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == item.Id);
+
+        if (dbEvent is null)
         {
             return false;
         }
 
-        Events[item.Id] = item;
+        dbEvent.Title = item.Title;
+        dbEvent.Description = item.Description;
+        dbEvent.StartAt = item.StartAt;
+        dbEvent.EndAt = item.EndAt;
+        dbEvent.TotalSeats = item.TotalSeats;
+        dbEvent.AvailableSeats = item.AvailableSeats;
+
+        _dbContext.Events.Update(dbEvent);
         return true;
     }
 
-    public bool TryRemoveEvent(Guid id)
+    public async Task<bool> TryRemoveEvent(Guid id)
     {
-        return Events.TryRemove(id, out var _);
+        var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+
+        if (dbEvent is null)
+        {
+            return false;
+        }
+
+        _dbContext.Events.Remove(dbEvent);
+
+        return true;
+    }
+
+    public async Task SaveChanges()
+    {
+        await _dbContext.SaveChangesAsync();
     }
 }

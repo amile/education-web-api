@@ -4,9 +4,10 @@ namespace EducationWebApi;
 
 public interface IEventsRepository
 {
-    IEnumerable<Event> GetAllEvents();
-    bool TryGetEvent(Guid id, [NotNullWhen(true)] out Event? item);
-    bool TryAddEvent(Event item);
-    bool TryChangeEvent(Event item);
-    bool TryRemoveEvent(Guid id);
+    Task<IEnumerable<Event>> GetAllEvents();
+    Task<Event?> TryGetEvent(Guid id);
+    Task AddEvent(Event item);
+    Task<bool> TryChangeEvent(Event item);
+    Task<bool> TryRemoveEvent(Guid id);
+    Task SaveChanges();
 } 

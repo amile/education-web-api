@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationWebApi;
@@ -20,41 +19,42 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<PaginatedResultDto<EventDto>> GetAllEvents(
+    public async Task<ActionResult<PaginatedResultDto<EventDto>>> GetAllEvents(
         [FromQuery] EventFilterDto filter,
         [FromQuery] PagingRequestDto pagingRequest
     )
     {
-        return _eventsService.GetEvents(filter, pagingRequest);
+        return await _eventsService.GetEventsAsync(filter, pagingRequest);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<EventDto> GetEvent(Guid id)
+    public async Task<ActionResult<EventDto>> GetEventAsync(Guid id)
     {
-        var result = _eventsService.GetEvent(id);
+        var result = await _eventsService.GetEventAsync(id);
 
         return result;
     }
 
     [HttpPost]
-    public ActionResult<Guid> Post([FromBody] CreateEventRequestDto item)
+    public async Task<ActionResult<Guid>> Post([FromBody] CreateEventRequestDto item)
     {
-        return _eventsService.AddEvent(item).Id;
+        var result = await _eventsService.AddEventAsync(item);
+        return result.Id;
     }
 
     [HttpPut("{id}")]
-    public ActionResult<EventDto> Put(Guid id, [FromBody] UpdateEventRequestDto item)
+    public async Task<ActionResult<EventDto>> Put(Guid id, [FromBody] UpdateEventRequestDto item)
     {
-        var result = _eventsService.ChangeEvent(id, item);
+        var result = await _eventsService.ChangeEventAsync(id, item);
 
         return result;
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-
-        if (!_eventsService.RemoveEvent(id))
+        var result = await _eventsService.RemoveEventAsync(id);
+        if (!result)
         {
             return new NotFoundResult();
         }
@@ -63,6 +63,9 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost("{id}/book")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BookingDto>> Booking(Guid id)
     {
         var booking = await _bookingService.CreateBookingAsync(id);
