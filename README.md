@@ -24,6 +24,7 @@ cd education-web-api
 docker compose up -d
 dotnet build
 dotnet run
+```
 
 ## Проверка работоспособности
 http://localhost:5003/health
@@ -35,7 +36,7 @@ http://localhost:5003/swagger
 dotnet test
 
 Для unit тестов используется In-Memory Provider
-Для нтеграционных тестов необходимо предварительно запустить docker 
+Для интеграционных тестов необходимо предварительно запустить docker 
 
 ## Формат ошибок
 Для описания ошибок используется Problem Details (RFC 7807)
