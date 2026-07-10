@@ -13,13 +13,13 @@ public class EventsRepository : IEventsRepository
         _dbContext = dbContext;
     }
 
-    public async Task<PaginatedResultDto<Event>> GetAllEventsAsync(EventFilterDto filter, PagingRequestDto pagingRequest, CancellationToken ct = default)
+    public async Task<PaginatedResult<Event>> GetAllEventsAsync(EventFilter filter, PagingRequest pagingRequest, CancellationToken ct = default)
     {
         var filteredItems = _dbContext.Events.AsQueryable();
             
         if (!string.IsNullOrWhiteSpace(filter.Title))
         {
-            filteredItems = filteredItems.Where(item => item.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase));
+            filteredItems = filteredItems.Where(item => item.Title.ToLower().Contains(filter.Title.ToLower()));
         }
 
         if (filter.From is not null)
@@ -41,7 +41,7 @@ public class EventsRepository : IEventsRepository
             .Select(item => Event.FromDb(item))
             .ToArray();
     
-        return new PaginatedResultDto<Event>(items, filteredItemsResult.Count, pagingRequest.Page, items.Length);
+        return new PaginatedResult<Event>(items, filteredItemsResult.Count, pagingRequest.Page, items.Length);
     }
 
     public async Task<Event?> GetEventByIdAsync(Guid id, CancellationToken ct = default)

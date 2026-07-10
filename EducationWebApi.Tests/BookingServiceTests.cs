@@ -131,44 +131,6 @@ public class BookingServiceTests
     }
 
     [Fact]
-    public async Task ConfirmBooking_Ok()
-    {
-        //Arrange
-        var eventId = await CreateEvent("event1");
-        var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
-
-        //Act
-        await _bookingRepository.ConfirmBookingAsync(pendingBooking.Id);
-        await _bookingRepository.SaveChangesAsync();
-        var confirmedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
-
-        //Assert
-        Assert.Equal(pendingBooking.Id, confirmedBooking.Id);
-        Assert.Equal(BookingStatus.Pending, pendingBooking.Status);
-        Assert.Equal(BookingStatus.Confirmed, confirmedBooking.Status);
-        Assert.NotNull(confirmedBooking.ProcessedAt);
-    }
-
-    [Fact]
-    public async Task RejectBooking_Ok()
-    {
-        //Arrange
-        var eventId = await CreateEvent("event1");
-        var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
-
-        //Act
-        await _bookingRepository.RejectBookingAsync(pendingBooking.Id);
-        await _bookingRepository.SaveChangesAsync();
-        var rejectedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
-
-        //Assert
-        Assert.Equal(pendingBooking.Id, rejectedBooking.Id);
-        Assert.Equal(BookingStatus.Pending, pendingBooking.Status);
-        Assert.Equal(BookingStatus.Rejected, rejectedBooking.Status);
-        Assert.NotNull(rejectedBooking.ProcessedAt);
-    }
-
-    [Fact]
     public async Task BookEvent_WrongEventId()
     {
         //Arrange

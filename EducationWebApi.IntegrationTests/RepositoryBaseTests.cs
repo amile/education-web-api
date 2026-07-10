@@ -4,7 +4,7 @@ using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
 
-public class RepositoryBaseTests : IAsyncLifetime
+public class RepositoryTestsBase : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
@@ -20,23 +20,30 @@ public class RepositoryBaseTests : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
-    private AppDbContext CreateContext()
+    protected AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(_postgres.GetConnectionString())
             .Options;
 
         var context = new AppDbContext(options);
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
         return context;
     }
 
-    private async Task ResetDatabaseAsync()
+    protected async Task ResetDatabaseAsync1()
     {
         // Сбрасываем пул — иначе PostgreSQL не даст удалить базу
         NpgsqlConnection.ClearAllPools();
         await using var context = CreateContext();
         await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-    } 
+        await context.Database.MigrateAsync();
+    }
+
+    protected async Task ResetDatabaseAsync()
+    {
+        await using var context = CreateContext();
+        await context.Database.ExecuteSqlRawAsync(
+            "TRUNCATE TABLE bookings, events RESTART IDENTITY CASCADE");
+    }
 }

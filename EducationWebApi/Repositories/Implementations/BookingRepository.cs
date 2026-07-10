@@ -39,7 +39,7 @@ public class BookingRepository : IBookingRepository
         return _dbContext.Bookings
             .Where(item => item.Status == BookingStatus.Pending.ToString())
             .Select(item => Booking.FromDb(item))
-            .ToListAsync(ct);;
+            .ToListAsync(ct);
     }
 
     public async Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default)

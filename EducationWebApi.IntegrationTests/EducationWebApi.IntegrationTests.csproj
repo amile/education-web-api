@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EducationWebApi\EducationWebApi.csproj" />
     <ProjectReference Include="..\EducationWebApi.DAL\EducationWebApi.DAL.csproj" />
   </ItemGroup>
 

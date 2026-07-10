@@ -13,7 +13,9 @@ public class EventsService : IEventsService
 
     public async Task<PaginatedResultDto<EventDto>> GetEventsAsync(EventFilterDto filter, PagingRequestDto pagingRequest, CancellationToken ct = default)
     {
-        var result = await _eventsRepository.GetAllEventsAsync(filter, pagingRequest, ct);
+        var domainFilter = EventFilter.FromApi(filter);
+        var domainPaging = PagingRequest.FromApi(pagingRequest);
+        var result = await _eventsRepository.GetAllEventsAsync(domainFilter, domainPaging, ct);
         var data = result.Data.Select(item => item.ToApi()).ToArray();
     
         return new PaginatedResultDto<EventDto>(data, result.TotalCount, result.CurrentPage, result.PageSize);
