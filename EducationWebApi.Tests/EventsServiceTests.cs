@@ -16,6 +16,7 @@ public class EventsServiceTests
         var services = new ServiceCollection();
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(dbName));
+        services.AddScoped<IEventsRepository, EventsRepository>();
         services.AddScoped<IEventsService, EventsService>();
 
         _serviceProvider = services.BuildServiceProvider();

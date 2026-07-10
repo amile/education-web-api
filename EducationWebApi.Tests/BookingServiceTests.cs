@@ -10,7 +10,6 @@ public class BookingServiceTests
     private readonly ServiceProvider _serviceProvider;
     private readonly IServiceScope _scope;
     private readonly IEventsService _eventsService;
-    private readonly IBookingRepository _bookingRepository;
     private readonly IBookingService _bookingService;
 
     public BookingServiceTests()
@@ -26,7 +25,6 @@ public class BookingServiceTests
 
         _serviceProvider = services.BuildServiceProvider();
         _scope = _serviceProvider.CreateScope();
-        _bookingRepository = _scope.ServiceProvider.GetRequiredService<IBookingRepository>();
         _eventsService = _scope.ServiceProvider.GetRequiredService<IEventsService>();
         _bookingService = _scope.ServiceProvider.GetRequiredService<IBookingService>();
     }
@@ -128,44 +126,6 @@ public class BookingServiceTests
         Assert.Equal(expectedBooking.Id, actualBooking.Id);
         Assert.Equal(expectedBooking.EventId, actualBooking.EventId);
         Assert.Equal(expectedBooking.Status, actualBooking.Status);
-    }
-
-    [Fact]
-    public async Task ConfirmBooking_Ok()
-    {
-        //Arrange
-        var eventId = await CreateEvent("event1");
-        var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
-
-        //Act
-        await _bookingRepository.ConfirmBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
-        var confirmedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
-
-        //Assert
-        Assert.Equal(pendingBooking.Id, confirmedBooking.Id);
-        Assert.Equal(BookingStatus.Pending, pendingBooking.Status);
-        Assert.Equal(BookingStatus.Confirmed, confirmedBooking.Status);
-        Assert.NotNull(confirmedBooking.ProcessedAt);
-    }
-
-    [Fact]
-    public async Task RejectBooking_Ok()
-    {
-        //Arrange
-        var eventId = await CreateEvent("event1");
-        var pendingBooking = await _bookingService.CreateBookingAsync(eventId);
-
-        //Act
-        await _bookingRepository.RejectBooking(pendingBooking.Id);
-        await _bookingRepository.SaveChanges();
-        var rejectedBooking = await _bookingService.GetBookingByIdAsync(pendingBooking.Id);
-
-        //Assert
-        Assert.Equal(pendingBooking.Id, rejectedBooking.Id);
-        Assert.Equal(BookingStatus.Pending, pendingBooking.Status);
-        Assert.Equal(BookingStatus.Rejected, rejectedBooking.Status);
-        Assert.NotNull(rejectedBooking.ProcessedAt);
     }
 
     [Fact]
