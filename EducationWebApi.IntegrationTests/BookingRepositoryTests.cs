@@ -4,19 +4,22 @@ using Xunit;
 
 namespace EducationWebApi.Tests;
 
-public class BookingRepositoryTests : RepositoryTestsBase
+[Collection("RepositoryTestCollection")]
+public class BookingRepositoryTests
 {
+    readonly RepositoryTestFixture _dbFixture;
 
-    public BookingRepositoryTests()
+    public BookingRepositoryTests(RepositoryTestFixture dbFixture)
     {
+        _dbFixture = dbFixture;
     }
 
     [Fact]
     public async Task AddBooking_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -26,7 +29,7 @@ public class BookingRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var actualBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == expectedBooking.Id);
         Assert.NotNull(actualBooking);
         Assert.Equal(expectedBooking.Id, actualBooking.Id);
@@ -40,8 +43,8 @@ public class BookingRepositoryTests : RepositoryTestsBase
     public async Task GetBookingById_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -64,8 +67,8 @@ public class BookingRepositoryTests : RepositoryTestsBase
     public async Task GetBookingById_WrongId()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -83,8 +86,8 @@ public class BookingRepositoryTests : RepositoryTestsBase
     public async Task GetPendingBookings_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -109,11 +112,57 @@ public class BookingRepositoryTests : RepositoryTestsBase
     }
 
     [Fact]
+    public async Task UpdateBookingStatus_Ok()
+    {
+        //Arrange
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
+        var repository = new BookingRepository(context);
+
+        var eventId = CreateEvent(context);
+        var bookingId = Guid.NewGuid();
+        await context.Bookings.AddAsync(new BookingEntity()
+        {
+            Id = bookingId,
+            EventId = eventId,
+            Status = BookingStatus.Rejected.ToString(),
+            CreatedAt = DateTime.UtcNow,
+        });
+        await repository.SaveChangesAsync();
+
+        //Act
+        await repository.UpdateStatusAsync(bookingId, BookingStatus.Confirmed);
+        await repository.SaveChangesAsync();
+
+        //Assert
+        await using var verifyContext = _dbFixture.CreateContext();
+        var confirmedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+        Assert.NotNull(confirmedBooking);
+        Assert.Equal(BookingStatus.Confirmed.ToString(), confirmedBooking.Status);
+        Assert.NotNull(confirmedBooking.ProcessedAt);
+    }
+
+    [Fact]
+    public async Task BookingUpdateStatus_WrongId()
+    {
+        //Arrange
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
+        var repository = new BookingRepository(context);
+
+        var eventId = CreateEvent(context);
+        var pendingBooking = await repository.AddBookingAsync(eventId);
+        await repository.SaveChangesAsync();
+
+        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.UpdateStatusAsync(Guid.NewGuid(), BookingStatus.Confirmed));
+    }
+
+    [Fact]
     public async Task ConfirmBooking_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -125,7 +174,7 @@ public class BookingRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var confirmedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == pendingBooking.Id);
         Assert.NotNull(confirmedBooking);
         Assert.Equal(pendingBooking.Id, confirmedBooking.Id);
@@ -138,8 +187,8 @@ public class BookingRepositoryTests : RepositoryTestsBase
     public async Task RejectBooking_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
@@ -151,28 +200,13 @@ public class BookingRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var rejectedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == pendingBooking.Id);
         Assert.NotNull(rejectedBooking);
         Assert.Equal(pendingBooking.Id, rejectedBooking.Id);
         Assert.Equal(BookingStatus.Pending, pendingBooking.Status);
         Assert.Equal(BookingStatus.Rejected.ToString(), rejectedBooking.Status);
         Assert.NotNull(rejectedBooking.ProcessedAt);
-    }
-
-    [Fact]
-    public async Task BookingUpdateStatus_WrongId()
-    {
-        //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
-        var repository = new BookingRepository(context);
-
-        var eventId = CreateEvent(context);
-        var pendingBooking = await repository.AddBookingAsync(eventId);
-        await repository.SaveChangesAsync();
-
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.UpdateStatusAsync(Guid.NewGuid(), BookingStatus.Confirmed));
     }
 
     private Guid CreateEvent(AppDbContext context)

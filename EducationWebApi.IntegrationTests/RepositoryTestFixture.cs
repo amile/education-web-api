@@ -4,7 +4,14 @@ using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
 
-public class RepositoryTestsBase : IAsyncLifetime
+namespace EducationWebApi.Tests;
+
+[CollectionDefinition("RepositoryTestCollection")]
+public class RepositoryTestCollection : ICollectionFixture<RepositoryTestFixture>
+{
+}
+
+public class RepositoryTestFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
@@ -20,7 +27,7 @@ public class RepositoryTestsBase : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
-    protected AppDbContext CreateContext()
+    public AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(_postgres.GetConnectionString())
@@ -31,16 +38,15 @@ public class RepositoryTestsBase : IAsyncLifetime
         return context;
     }
 
-    protected async Task ResetDatabaseAsync1()
+    public async Task ResetDatabaseAsyncWithDelete()
     {
-        // Сбрасываем пул — иначе PostgreSQL не даст удалить базу
         NpgsqlConnection.ClearAllPools();
         await using var context = CreateContext();
         await context.Database.EnsureDeletedAsync();
         await context.Database.MigrateAsync();
     }
 
-    protected async Task ResetDatabaseAsync()
+    public async Task ResetDatabaseAsync()
     {
         await using var context = CreateContext();
         await context.Database.ExecuteSqlRawAsync(

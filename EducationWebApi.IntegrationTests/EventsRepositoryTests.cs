@@ -4,19 +4,22 @@ using Xunit;
 
 namespace EducationWebApi.Tests;
 
-public class EventsRepositoryTests : RepositoryTestsBase
+[Collection("RepositoryTestCollection")]
+public class EventsRepositoryTests
 {
+    readonly RepositoryTestFixture _dbFixture;
 
-    public EventsRepositoryTests()
+    public EventsRepositoryTests(RepositoryTestFixture dbFixture)
     {
+        _dbFixture = dbFixture;
     }
 
     [Fact]
     public async Task AddEvent_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var expectedEvent = new Event("Event", "Fantastic Event", DateTime.UtcNow, DateTime.UtcNow, 10);
@@ -26,7 +29,7 @@ public class EventsRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var actualEvent = await verifyContext.Events.FirstOrDefaultAsync(b => b.Id == expectedEvent.Id);
         Assert.NotNull(actualEvent);
         Assert.Equal(expectedEvent.Id, actualEvent.Id);
@@ -42,8 +45,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetEventById_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId1 = CreateEvent(context, "Event1");
@@ -63,8 +66,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetEventById_WrongId()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId1 = CreateEvent(context, "Event1");
@@ -81,8 +84,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId1 = CreateEvent(context, "Event1");
@@ -104,8 +107,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_Paging_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId1 = CreateEvent(context, "Event1");
@@ -133,8 +136,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_FilterByTitle_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId1 = CreateEvent(context, "Event1");
@@ -153,8 +156,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_FilterByStartAt_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
         var filterFrom = new DateTime(2026, 1, 2).ToUniversalTime();
 
@@ -174,8 +177,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_FilterByEndAt_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
         var filterTo = new DateTime(2026, 1, 2).ToUniversalTime();
 
@@ -195,8 +198,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task GetAllEvents_MultipleFilter_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
         var filterFrom = new DateTime(2026, 1, 1).ToUniversalTime();
         var filterTo = new DateTime(2026, 1, 2).ToUniversalTime();
@@ -217,8 +220,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task ChangeEvent_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId = CreateEvent(context, 
@@ -242,7 +245,7 @@ public class EventsRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var actualEvent = await verifyContext.Events.FirstOrDefaultAsync(b => b.Id == eventId);
         Assert.NotNull(actualEvent);
         Assert.Equal(eventToChange.Title, actualEvent.Title);
@@ -256,8 +259,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task ChangeEvent_WrongId()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId = CreateEvent(context, title: "Event");
@@ -279,8 +282,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task RemoveEvent_Ok()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         var eventId = CreateEvent(context, "Event1");
@@ -291,7 +294,7 @@ public class EventsRepositoryTests : RepositoryTestsBase
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var actualEvent = await verifyContext.Events.FirstOrDefaultAsync(b => b.Id == eventId);
         Assert.Null(actualEvent);
     }
@@ -300,8 +303,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task RemoveEvent_WrongId()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
         //Assert
@@ -312,8 +315,8 @@ public class EventsRepositoryTests : RepositoryTestsBase
     public async Task LoadEventsWithBookings_ReturnsCorrectCount()
     {
         // Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
         var eventId1 = CreateEvent(context, "Event1");
         var eventId2 = CreateEvent(context, "Event2");
         var expectedBookingId1 = Guid.NewGuid();
@@ -327,7 +330,7 @@ public class EventsRepositoryTests : RepositoryTestsBase
         await context.SaveChangesAsync();
 
         // Act
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _dbFixture.CreateContext();
         var loaded = await verifyContext.Events
             .Include(e => e.Bookings)
             .FirstAsync(e => e.Id == eventId1);
