@@ -30,9 +30,6 @@ namespace EducationWebApi.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("EventEntityId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
@@ -45,8 +42,6 @@ namespace EducationWebApi.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventEntityId");
-
                     b.HasIndex("EventId");
 
                     b.ToTable("bookings", (string)null);
@@ -55,7 +50,6 @@ namespace EducationWebApi.DAL.Migrations
             modelBuilder.Entity("EducationWebApi.DAL.EventEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("AvailableSeats")
@@ -85,12 +79,8 @@ namespace EducationWebApi.DAL.Migrations
 
             modelBuilder.Entity("EducationWebApi.DAL.BookingEntity", b =>
                 {
-                    b.HasOne("EducationWebApi.DAL.EventEntity", null)
-                        .WithMany("Bookings")
-                        .HasForeignKey("EventEntityId");
-
                     b.HasOne("EducationWebApi.DAL.EventEntity", "Event")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

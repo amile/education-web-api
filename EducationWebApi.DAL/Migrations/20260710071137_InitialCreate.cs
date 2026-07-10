@@ -36,17 +36,11 @@ namespace EducationWebApi.DAL.Migrations
                     EventId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ProcessedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    EventEntityId = table.Column<Guid>(type: "uuid", nullable: true)
+                    ProcessedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_bookings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_bookings_events_EventEntityId",
-                        column: x => x.EventEntityId,
-                        principalTable: "events",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_bookings_events_EventId",
                         column: x => x.EventId,
@@ -54,11 +48,6 @@ namespace EducationWebApi.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_bookings_EventEntityId",
-                table: "bookings",
-                column: "EventEntityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_bookings_EventId",

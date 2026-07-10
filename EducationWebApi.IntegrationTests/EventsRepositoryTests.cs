@@ -1,7 +1,5 @@
 ﻿using EducationWebApi.DAL;
-using Humanizer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 
 namespace EducationWebApi.Tests;
@@ -309,6 +307,38 @@ public class EventsRepositoryTests : RepositoryTestsBase
         //Assert
         var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.RemoveEventAsync(Guid.NewGuid()));
     }
+
+    [Fact]
+    public async Task LoadEventsWithBookings_ReturnsCorrectCount()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        await using var context = CreateContext();
+        var eventId1 = CreateEvent(context, "Event1");
+        var eventId2 = CreateEvent(context, "Event2");
+        var expectedBookingId1 = Guid.NewGuid();
+        var expectedBookingId2 = Guid.NewGuid();
+
+        context.Bookings.AddRange(
+            new BookingEntity { Id = expectedBookingId1, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = expectedBookingId2, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = Guid.NewGuid(), EventId = eventId2, Status = "Pending", CreatedAt = DateTime.UtcNow }
+        );
+        await context.SaveChangesAsync();
+
+        // Act
+        await using var verifyContext = CreateContext();
+        var loaded = await verifyContext.Events
+            .Include(e => e.Bookings)
+            .FirstAsync(e => e.Id == eventId1);
+
+        // Assert
+        Assert.NotNull(loaded.Bookings);
+        Assert.Equal(2, loaded.Bookings.Count);
+        var bookingsIds = loaded.Bookings.Select(item => item.Id);
+        Assert.Contains(expectedBookingId1, bookingsIds);
+        Assert.Contains(expectedBookingId2, bookingsIds);
+    } 
 
     private Guid CreateEvent(
         AppDbContext context, 

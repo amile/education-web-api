@@ -10,7 +10,14 @@ public class EventConfiguration : IEntityTypeConfiguration<EventEntity>
         builder.ToTable("events");
 
         builder.HasKey(b => b.Id);
+        
+        builder.Property(e => e.Id).ValueGeneratedNever();;
 
-        builder.Property(b => b.Title).HasMaxLength(200);;
+        builder.Property(b => b.Title).HasMaxLength(200);
+
+        builder.HasMany(e => e.Bookings)
+            .WithOne(b => b.Event)
+            .HasForeignKey(b => b.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

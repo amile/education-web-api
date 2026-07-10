@@ -13,7 +13,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
         builder.Property(b => b.Id).ValueGeneratedNever();
 
         builder.HasOne(b => b.Event)
-            .WithMany()
-            .HasForeignKey(p => p.EventId);
+            .WithMany(e => e.Bookings)
+            .HasForeignKey(b => b.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
