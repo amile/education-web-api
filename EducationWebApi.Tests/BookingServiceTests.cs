@@ -10,7 +10,6 @@ public class BookingServiceTests
     private readonly ServiceProvider _serviceProvider;
     private readonly IServiceScope _scope;
     private readonly IEventsService _eventsService;
-    private readonly IBookingRepository _bookingRepository;
     private readonly IBookingService _bookingService;
 
     public BookingServiceTests()
@@ -26,7 +25,6 @@ public class BookingServiceTests
 
         _serviceProvider = services.BuildServiceProvider();
         _scope = _serviceProvider.CreateScope();
-        _bookingRepository = _scope.ServiceProvider.GetRequiredService<IBookingRepository>();
         _eventsService = _scope.ServiceProvider.GetRequiredService<IEventsService>();
         _bookingService = _scope.ServiceProvider.GetRequiredService<IBookingService>();
     }

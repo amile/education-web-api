@@ -3,13 +3,19 @@
 
 ## Требования
 * [.NET 10.0 SDK](https://microsoft.com) 
+* [Docker](https://www.docker.com) 
 
 Для работы приложения необходим доступ к базе данных PostgreSQL
-В проекте по умолчанию база разворачивается в docker контейнере (https://docs.docker.com), 
+В проекте по умолчанию база разворачивается в docker контейнере, 
 настройки для подключения к базе прописаны в файле appsettings.json, блоке "ConnectionStrings" -> "Default"
-При запуске приложения схема БД создаётся автоматически через EnsureCreated
 
-Для тестов используется In-Memory Provider
+# Создание миграций:
+dotnet ef migrations add {MigrationName}
+
+# Применение миграций:
+dotnet ef database update
+
+При запуске приложения схема БД создаётся автоматически методом Migrate
 
 ## Установка
 ```bash
@@ -27,6 +33,9 @@ http://localhost:5003/swagger
 
 ## Запуск тестов
 dotnet test
+
+Для unit тестов используется In-Memory Provider
+Для нтеграционных тестов необходимо предварительно запустить docker 
 
 ## Формат ошибок
 Для описания ошибок используется Problem Details (RFC 7807)
