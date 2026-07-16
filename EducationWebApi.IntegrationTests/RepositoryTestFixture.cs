@@ -1,4 +1,4 @@
-using EducationWebApi.DAL;
+using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Testcontainers.PostgreSql;

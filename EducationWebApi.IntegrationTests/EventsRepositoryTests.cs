@@ -1,6 +1,7 @@
-﻿using EducationWebApi.DAL;
+﻿using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using EducationWebApi.Domain;
 
 namespace EducationWebApi.Tests;
 

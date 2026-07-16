@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EducationWebApi.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 public class GlobalExceptionHandlingMiddleware

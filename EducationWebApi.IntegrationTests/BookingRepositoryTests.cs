@@ -1,4 +1,5 @@
-﻿using EducationWebApi.DAL;
+﻿using EducationWebApi.Domain;
+using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
