@@ -1,12 +1,13 @@
-using EducationWebApi;
-using EducationWebApi.DAL;
+using EducationWebApi.Application;
+using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataAccess(builder.Configuration);
+builder.Services.AddRepositories();
 
-builder.Services.AddDomainServices();
+builder.Services.AddAppServices();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 );

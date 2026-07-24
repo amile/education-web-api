@@ -1,4 +1,5 @@
-﻿using EducationWebApi.DAL;
+﻿using EducationWebApi.Application;
+using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

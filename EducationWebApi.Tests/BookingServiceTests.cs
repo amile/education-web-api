@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using EducationWebApi.DAL;
+using EducationWebApi.Application;
+using EducationWebApi.Domain;
+using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

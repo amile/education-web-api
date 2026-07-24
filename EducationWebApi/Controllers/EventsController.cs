@@ -1,3 +1,4 @@
+using EducationWebApi.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationWebApi;
