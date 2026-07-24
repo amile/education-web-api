@@ -20,7 +20,7 @@ EducationWebApi.Tests - unit-тесты. Проверяют логику раб�
 настройки для подключения к базе прописаны в файле appsettings.json, блоке "ConnectionStrings" -> "Default"
 
 # Создание миграций:
-dotnet ef migrations add {MigrationName}
+dotnet ef migrations add {MigrationName} --project EducationWebApi.Infrastructure --startup-project EducationWebApi
 
 # Применение миграций:
 dotnet ef database update
