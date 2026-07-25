@@ -13,12 +13,13 @@ public class BookingRepository : IBookingRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Booking> AddBookingAsync(Guid eventId, CancellationToken ct = default)
+    public async Task<Booking> AddBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default)
     {
         var dbBooking = new BookingEntity()
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
+            UserId = userId,
             Status = BookingStatus.Pending.ToString(),
             CreatedAt = DateTime.UtcNow,
         };

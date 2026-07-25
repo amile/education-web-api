@@ -69,7 +69,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BookingDto>> Booking(Guid id)
     {
-        var booking = await _bookingService.CreateBookingAsync(id);
+        var booking = await _bookingService.CreateBookingAsync(id, id);
 
         return Accepted($"/api/bookings/{booking.Id}", booking);
     }

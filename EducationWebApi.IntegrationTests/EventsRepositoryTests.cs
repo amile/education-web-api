@@ -322,11 +322,12 @@ public class EventsRepositoryTests
         var eventId2 = CreateEvent(context, "Event2");
         var expectedBookingId1 = Guid.NewGuid();
         var expectedBookingId2 = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         context.Bookings.AddRange(
-            new BookingEntity { Id = expectedBookingId1, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
-            new BookingEntity { Id = expectedBookingId2, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
-            new BookingEntity { Id = Guid.NewGuid(), EventId = eventId2, Status = "Pending", CreatedAt = DateTime.UtcNow }
+            new BookingEntity { Id = expectedBookingId1, UserId = userId, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = expectedBookingId2, UserId = userId, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = Guid.NewGuid(), UserId = userId, EventId = eventId2, Status = "Pending", CreatedAt = DateTime.UtcNow }
         );
         await context.SaveChangesAsync();
 

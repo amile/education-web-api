@@ -4,6 +4,7 @@ public class Booking
 {
     public required Guid Id { get; set; }
     public required Guid EventId { get; set; }
+    public required Guid UserId { get; set; }
     public required BookingStatus Status { get; set; }
     public required DateTime CreatedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
@@ -11,6 +12,16 @@ public class Booking
     public void ConfirmBooking()
     {
         Status = BookingStatus.Confirmed;
+        ProcessedAt = DateTime.UtcNow;
+    }
+
+    public void CancelBooking()
+    {
+        if (Status == BookingStatus.Cancelled)
+        {
+            return;
+        }
+        Status = BookingStatus.Cancelled;
         ProcessedAt = DateTime.UtcNow;
     }
 

@@ -24,9 +24,10 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
+        var userId = Guid.NewGuid();
 
         //Act
-        var expectedBooking = await repository.AddBookingAsync(eventId);
+        var expectedBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         //Assert
@@ -49,7 +50,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var expectedBooking = await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        var expectedBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         //Act
@@ -73,7 +75,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         //Act
@@ -92,10 +95,11 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var booking1 = await repository.AddBookingAsync(eventId);
-        var booking2 = await repository.AddBookingAsync(eventId);
-        var booking3 = await repository.AddBookingAsync(eventId);
-        var booking4 = await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        var booking1 = await repository.AddBookingAsync(eventId, userId);
+        var booking2 = await repository.AddBookingAsync(eventId, userId);
+        var booking3 = await repository.AddBookingAsync(eventId, userId);
+        var booking4 = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         await repository.ConfirmBookingAsync(booking1.Id);
@@ -122,10 +126,12 @@ public class BookingRepositoryTests
 
         var eventId = CreateEvent(context);
         var bookingId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         await context.Bookings.AddAsync(new BookingEntity()
         {
             Id = bookingId,
             EventId = eventId,
+            UserId = userId,
             Status = BookingStatus.Rejected.ToString(),
             CreatedAt = DateTime.UtcNow,
         });
@@ -152,7 +158,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var pendingBooking = await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.UpdateStatusAsync(Guid.NewGuid(), BookingStatus.Confirmed));
@@ -167,7 +174,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var pendingBooking = await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         //Act
@@ -193,7 +201,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var pendingBooking = await repository.AddBookingAsync(eventId);
+        var userId = Guid.NewGuid();
+        var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
         //Act

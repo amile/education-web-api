@@ -3,10 +3,8 @@ using System.Text.Json.Serialization;
 namespace EducationWebApi.Domain;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum BookingStatus
+public enum UserRole
 {
-    Pending,
-    Confirmed,
-    Rejected,
-    Cancelled,
+    User,
+    Admin,
 }

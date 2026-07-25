@@ -17,9 +17,9 @@ public class BookingService : IBookingService
         _eventsRepository = eventsRepository;
     }
 
-    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
-        var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
+        var booking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
 
         if (booking is null)
         {
@@ -29,7 +29,7 @@ public class BookingService : IBookingService
         return BookingDto.FromDomain(booking);
     }
 
-    public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken = default)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken cancellationToken = default)
     {
         await _processingSemaphore.WaitAsync();
 
@@ -49,7 +49,7 @@ public class BookingService : IBookingService
 
             await _eventsRepository.ChangeEventAsync(domainEvent, cancellationToken);
 
-            var booking = await _bookingRepository.AddBookingAsync(eventId, cancellationToken);
+            var booking = await _bookingRepository.AddBookingAsync(eventId, userId, cancellationToken);
             await _bookingRepository.SaveChangesAsync(cancellationToken);
 
             return BookingDto.FromDomain(booking);
