@@ -320,9 +320,9 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var eventId1 = CreateEvent(context, "Event1");
         var eventId2 = CreateEvent(context, "Event2");
+        var userId = CreateUser(context);
         var expectedBookingId1 = Guid.NewGuid();
         var expectedBookingId2 = Guid.NewGuid();
-        var userId = Guid.NewGuid();
 
         context.Bookings.AddRange(
             new BookingEntity { Id = expectedBookingId1, UserId = userId, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
@@ -365,5 +365,19 @@ public class EventsRepositoryTests
         });
 
         return eventId;
+    }
+
+    private Guid CreateUser(AppDbContext context)
+    {
+        var userId = Guid.NewGuid();
+        context.Users.Add(new UserEntity()
+        {
+            Id = userId,
+            Login = "User",
+            PasswordHash = "Password",
+            Role = "User",
+        });
+
+        return userId;
     }
 }

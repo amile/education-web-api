@@ -24,7 +24,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
 
         //Act
         var expectedBooking = await repository.AddBookingAsync(eventId, userId);
@@ -50,7 +50,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         var expectedBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
@@ -75,7 +75,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
@@ -95,7 +95,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         var booking1 = await repository.AddBookingAsync(eventId, userId);
         var booking2 = await repository.AddBookingAsync(eventId, userId);
         var booking3 = await repository.AddBookingAsync(eventId, userId);
@@ -125,8 +125,8 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
+        var userId = CreateUser(context);
         var bookingId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
         await context.Bookings.AddAsync(new BookingEntity()
         {
             Id = bookingId,
@@ -158,7 +158,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
@@ -174,7 +174,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
@@ -201,7 +201,7 @@ public class BookingRepositoryTests
         var repository = new BookingRepository(context);
 
         var eventId = CreateEvent(context);
-        var userId = Guid.NewGuid();
+        var userId = CreateUser(context);
         var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
@@ -233,5 +233,19 @@ public class BookingRepositoryTests
         });
 
         return eventId;
+    }
+
+    private Guid CreateUser(AppDbContext context)
+    {
+        var userId = Guid.NewGuid();
+        context.Users.Add(new UserEntity()
+        {
+            Id = userId,
+            Login = "User",
+            PasswordHash = "Password",
+            Role = "User",
+        });
+
+        return userId;
     }
 }
