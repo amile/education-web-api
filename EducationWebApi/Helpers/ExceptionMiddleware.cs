@@ -59,8 +59,11 @@ public class GlobalExceptionHandlingMiddleware
         {
             BadHttpRequestException => StatusCodes.Status400BadRequest,
             ValidationException => StatusCodes.Status400BadRequest,
-            KeyNotFoundException => StatusCodes.Status404NotFound,
+            EventAlreadyStartedException => StatusCodes.Status400BadRequest,
+            NoPermissionException => StatusCodes.Status403Forbidden,
+            NotFoundException => StatusCodes.Status404NotFound,
             NoAvailableSeatsException => StatusCodes.Status409Conflict,
+            TooManyBookingsException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
 

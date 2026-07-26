@@ -1,4 +1,5 @@
 ﻿using EducationWebApi.Application;
+using EducationWebApi.Domain;
 using EducationWebApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,7 +114,7 @@ public class EventsServiceTests
 
         //Assert
         Assert.True(removeResult);
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _eventsService.GetEventAsync(id));
+        await Assert.ThrowsAsync<NotFoundException>(() => _eventsService.GetEventAsync(id));
     }
 
     [Fact]
@@ -223,7 +224,7 @@ public class EventsServiceTests
         var id = new Guid();
 
         //Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _eventsService.GetEventAsync(id));
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => _eventsService.GetEventAsync(id));
         Assert.Equal($"Event Id: {id} not found", exception.Message);
     }
 
@@ -235,7 +236,7 @@ public class EventsServiceTests
         var id = new Guid();
 
         //Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => 
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => 
             _eventsService.ChangeEventAsync(
                 id, 
                 new UpdateEventRequestDto() { Title = "event2", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2) }

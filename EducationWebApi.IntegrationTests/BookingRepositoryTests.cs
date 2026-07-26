@@ -162,7 +162,7 @@ public class BookingRepositoryTests
         var pendingBooking = await repository.AddBookingAsync(eventId, userId);
         await repository.SaveChangesAsync();
 
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.UpdateStatusAsync(Guid.NewGuid(), BookingStatus.Confirmed));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => repository.UpdateStatusAsync(Guid.NewGuid(), BookingStatus.Confirmed));
     }
 
     [Fact]

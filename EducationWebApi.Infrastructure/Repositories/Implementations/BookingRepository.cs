@@ -50,7 +50,7 @@ public class BookingRepository : IBookingRepository
 
         if (dbBooking is null)
         {
-            throw new KeyNotFoundException($"Booking Id: {id} not found");
+            throw new NotFoundException($"Booking Id: {id} not found");
         }
 
         dbBooking.Status = status.ToString();
@@ -66,6 +66,11 @@ public class BookingRepository : IBookingRepository
     public Task RejectBookingAsync(Guid id, CancellationToken ct = default)
     {
         return UpdateStatusAsync(id, BookingStatus.Rejected, ct);
+    }
+
+    public Task CancelBookingAsync(Guid id, CancellationToken ct = default)
+    {
+        return UpdateStatusAsync(id, BookingStatus.Cancelled, ct);
     }
 
     public async Task SaveChangesAsync(CancellationToken ct = default)

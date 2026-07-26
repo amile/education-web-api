@@ -144,7 +144,7 @@ public class BookingServiceTests
         var userId = Guid.NewGuid();
 
         //Assert
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.CreateBookingAsync(eventId, userId));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => _bookingService.CreateBookingAsync(eventId, userId));
         Assert.Equal($"Event Id: {eventId} not found", error.Message);
     }
 
@@ -157,7 +157,7 @@ public class BookingServiceTests
         var userId = Guid.NewGuid();
 
         //Assert
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.CreateBookingAsync(eventId, userId));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => _bookingService.CreateBookingAsync(eventId, userId));
         Assert.Equal($"Event Id: {eventId} not found", error.Message);
     }
 
@@ -171,7 +171,7 @@ public class BookingServiceTests
         var wrongId = Guid.NewGuid();
 
         //Assert
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bookingService.GetBookingByIdAsync(wrongId));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => _bookingService.GetBookingByIdAsync(wrongId));
         Assert.Equal($"Booking Id: {wrongId} not found", error.Message);
     }
 

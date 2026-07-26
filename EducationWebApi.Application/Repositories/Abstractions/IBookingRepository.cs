@@ -10,5 +10,6 @@ public interface IBookingRepository
     Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default);
     Task ConfirmBookingAsync(Guid id, CancellationToken ct = default);
     Task RejectBookingAsync(Guid id, CancellationToken ct = default);
+    Task CancelBookingAsync(Guid id, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 } 

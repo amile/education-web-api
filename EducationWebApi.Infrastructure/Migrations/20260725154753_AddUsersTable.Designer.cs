@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EducationWebApi.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260725105309_AddUsersTable")]
+    [Migration("20260725154753_AddUsersTable")]
     partial class AddUsersTable
     {
         /// <inheritdoc />
@@ -93,6 +93,7 @@ namespace EducationWebApi.Infrastructure.Migrations
                     b.Property<string>("Login")
                         .IsRequired()
                         .HasMaxLength(200)
+                        .IsUnicode(true)
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("PasswordHash")

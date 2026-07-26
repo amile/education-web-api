@@ -4,13 +4,7 @@ namespace EducationWebApi.Infrastructure;
 
 public class UserFactory
 {
-    public static User FromDb(UserEntity dbModel) => new User()
-    {
-        Id = dbModel.Id, 
-        Login = dbModel.Login,
-        PasswordHash = dbModel.PasswordHash,
-        Role = Enum.Parse<UserRole>(dbModel.Role),
-    };
+    public static User FromDb(UserEntity dbModel) => new User(dbModel.Id, dbModel.Login, dbModel.PasswordHash, Enum.Parse<UserRole>(dbModel.Role));
 
     public static UserEntity ToDb(User model) => new UserEntity()
     {

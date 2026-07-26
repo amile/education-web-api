@@ -15,14 +15,16 @@ public class Booking
         ProcessedAt = DateTime.UtcNow;
     }
 
-    public void CancelBooking()
+    public bool CancelBooking()
     {
         if (Status == BookingStatus.Cancelled)
         {
-            return;
+            return false;
         }
+
         Status = BookingStatus.Cancelled;
         ProcessedAt = DateTime.UtcNow;
+        return true;
     }
 
     public void RejectBooking()

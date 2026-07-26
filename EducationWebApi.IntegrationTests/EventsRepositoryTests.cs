@@ -276,7 +276,7 @@ public class EventsRepositoryTests
             endAt: new DateTime(2026, 1, 2).ToUniversalTime(),
             totalSeats: 10
         );
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.ChangeEventAsync(eventToChange));;
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => repository.ChangeEventAsync(eventToChange));;
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class EventsRepositoryTests
         var repository = new EventsRepository(context);
 
         //Assert
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.RemoveEventAsync(Guid.NewGuid()));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => repository.RemoveEventAsync(Guid.NewGuid()));
     }
 
     [Fact]
