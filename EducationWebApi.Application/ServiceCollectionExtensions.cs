@@ -8,6 +8,7 @@ public static class ServiceCollectionExtensions
     {
         sc.AddScoped<IJWTTokenService, JWTTokenService>();
 
+        sc.AddScoped<IUsersService, UsersService>();
         sc.AddScoped<IEventsService, EventsService>();
         sc.AddScoped<IBookingService, BookingService>();
 

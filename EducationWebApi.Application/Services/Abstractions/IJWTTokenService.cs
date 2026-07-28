@@ -1,6 +1,8 @@
+using EducationWebApi.Domain;
+
 namespace EducationWebApi.Application;
 
 public interface IJWTTokenService
 {
-    Task<TokenResultDto> GenerateToken(string userName, CancellationToken cancellationToken = default);
+    Task<TokenResultDto> GenerateToken(User user, CancellationToken cancellationToken = default);
 }

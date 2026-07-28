@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection sc)
     {
+        sc.AddScoped<IUsersRepository, UsersRepository>();
         sc.AddScoped<IEventsRepository, EventsRepository>();
         sc.AddScoped<IBookingRepository, BookingRepository>();
 

@@ -22,20 +22,21 @@ public class UsersService : IUsersService
 
         if (user is null || HashDataHelper.GetHash(userRequest.Password) != user.PasswordHash)
         {
-            throw new UserNotFoundExeption();
+            throw new UnauthorizedAccessException($"Incorrect login or password");
         }
 
-        var token = await _jwtTokenService.GenerateToken(userRequest.Login);
+        var token = await _jwtTokenService.GenerateToken(user);
 
         return token;
     }
 
     public async Task<TokenResultDto> RegisterUserAsync(RegisterUserRequestDto userRequest, CancellationToken cancellationToken = default)
     {
-        await _usersRepository.AddUserAsync(new User(userRequest.Login, userRequest.Password, UserRole.User), cancellationToken);
+        var user = new User(userRequest.Login, HashDataHelper.GetHash(userRequest.Password), userRequest.Role ?? UserRole.User);
+        await _usersRepository.AddUserAsync(user, cancellationToken);
         await _usersRepository.SaveChangesAsync(cancellationToken);
 
-        var token = await _jwtTokenService.GenerateToken(userRequest.Login);
+        var token = await _jwtTokenService.GenerateToken(user);
 
         return token;
     }

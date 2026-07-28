@@ -1,8 +1,10 @@
 using EducationWebApi.Application;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationWebApi;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 

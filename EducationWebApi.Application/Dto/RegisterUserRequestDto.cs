@@ -1,6 +1,9 @@
+using EducationWebApi.Domain;
+
 namespace EducationWebApi.Application;
 
 public record RegisterUserRequestDto(
     string Login,
-    string Password
+    string Password,
+    UserRole? Role = UserRole.User
 );

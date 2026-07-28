@@ -13,7 +13,9 @@ public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
         
         builder.Property(e => e.Id).ValueGeneratedNever();;
 
-        builder.Property(b => b.Login).IsUnicode().HasMaxLength(200);
+        builder.Property(b => b.Login).HasMaxLength(200);
+
+        builder.HasIndex(u => u.Login).IsUnique();
 
         builder.HasMany(e => e.Bookings)
             .WithOne(b => b.User)

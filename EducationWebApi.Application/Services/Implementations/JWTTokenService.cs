@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using EducationWebApi.Domain;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,11 +15,13 @@ public class JWTTokenService : IJWTTokenService
         _jwtTokenConfig = options.Value;
     }
 
-    public async Task<TokenResultDto> GenerateToken(string userName, CancellationToken cancellationToken = default)
+    public async Task<TokenResultDto> GenerateToken(User user, CancellationToken cancellationToken = default)
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, userName)
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Login),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtTokenConfig.Secret));

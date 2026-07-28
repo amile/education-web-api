@@ -90,7 +90,6 @@ namespace EducationWebApi.Infrastructure.Migrations
                     b.Property<string>("Login")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(true)
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("PasswordHash")
@@ -102,6 +101,9 @@ namespace EducationWebApi.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
 
                     b.ToTable("users", (string)null);
                 });
