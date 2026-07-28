@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EducationWebApi;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 
 public class UsersController : ControllerBase
 {

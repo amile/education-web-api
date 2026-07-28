@@ -51,8 +51,59 @@ dotnet test
 ## Формат ошибок
 Для описания ошибок используется Problem Details (RFC 7807)
 
+## Аутентификация
+
+В приложении настроена JWT-аутентификация
+Конфигурация JWT токена по умолчанию прописана в файле appsettings.json, блоке "token". В production рекомендуется хранить конфигурацию в переменных окружения,
+защищенных конфигурационных файлах, специальных менеджерах секретов.
+
+Для работы в Swagger также необходимо ввести токен аутентификации, методы получения токена описаны ниже.
+
 ## 🚀 API Endpoints
 
+### Регистрация пользователя
+POST /users/auth/register
+
+#### Параметры тела запроса
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `login` | `string` | Yes | Логин пользователя |
+| `password`| `string` | Yes | Пароль пользователя |
+| `role` | `UserRole` | No | Роль пользователя |
+
+*Роли пользователя*
+UserRole
+{
+    Admin,
+    User
+}
+
+#### Успешный ответ
+* **Code:** 200 Ok
+* **Content:**
+```json
+{
+  "accessToken": "eyJhbGciO...ZVDfcgN1hICLKrKd9FZC7icI"
+}
+```
+
+### Вход пользователя в систему
+POST /users/auth/login
+
+#### Параметры тела запроса
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `login` | `string` | Yes | Логин пользователя |
+| `password`| `string` | Yes | Пароль пользователя |
+
+#### Успешный ответ
+* **Code:** 200 Ok
+* **Content:**
+```json
+{
+  "accessToken": "eyJhbGciO...ZVDfcgN1hICLKrKd9FZC7icI"
+}
+```
 
 ### Создание события
 POST /api/events

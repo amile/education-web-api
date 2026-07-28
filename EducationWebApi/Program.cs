@@ -1,11 +1,6 @@
-using System.Security.Claims;
-using System.Text;
 using EducationWebApi.Application;
 using EducationWebApi.Infrastructure;
-using Humanizer;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,36 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDataAccess(builder.Configuration);
 builder.Services.AddRepositories();
 
-var tokenConfigSection = builder.Configuration.GetSection("token");
-var tokenConfig = tokenConfigSection.Get<JWTTokenConfig>() ?? throw new ArgumentNullException("Token config section is empty");
-builder.Services.Configure<JWTTokenConfig>(tokenConfigSection);
-
-builder.Services.AddAuthentication(options => 
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options => 
-{
-    options.TokenValidationParameters = new TokenValidationParameters()
-    {
-        ValidateIssuer = true,
-        ValidIssuer = tokenConfig.Issuer,
-
-        ValidateAudience = true,
-        ValidAudience = tokenConfig.Audience,
-
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero,
-
-        ValidateIssuerSigningKey = true,
-
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfig.Secret)),
-
-        // RoleClaimType = ClaimTypes.Role,
-    };
-});
-builder.Services.AddAuthorization();
+builder.Services.AddAuth(builder.Configuration);
 
 builder.Services.AddAppServices();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
