@@ -28,15 +28,6 @@ public class UsersRepository : IUsersRepository
         return user is not null ? UserFactory.FromDb(user) : null;
     }
 
-    public async Task<int> GetUserActiveBookingsCountAsync(Guid userId, CancellationToken ct = default)
-    {
-        var user = await _dbContext.Users
-            .Include(u => u.Bookings!.Where(b => b.Status != BookingStatus.Rejected.ToString() && b.Status != BookingStatus.Cancelled.ToString()))
-            .FirstAsync(e => e.Id == userId, ct);
-
-        return user.Bookings!.Count();
-    }
-
     public Task AddUserAsync(User item, CancellationToken ct = default)
     {
         return _dbContext.AddAsync(UserFactory.ToDb(item), ct).AsTask();

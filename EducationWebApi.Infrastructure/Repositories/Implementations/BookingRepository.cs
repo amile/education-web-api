@@ -1,6 +1,7 @@
 using EducationWebApi.Application;
 using EducationWebApi.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace EducationWebApi.Infrastructure;
 
@@ -40,6 +41,14 @@ public class BookingRepository : IBookingRepository
     {
         return _dbContext.Bookings
             .Where(item => item.Status == BookingStatus.Pending.ToString())
+            .Select(item => BookingFactory.FromDb(item))
+            .ToListAsync(ct);
+    }
+
+    public Task<List<Booking>> GetActiveBookingsByUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        return _dbContext.Bookings
+            .Where(item => item.UserId == userId && (item.Status == BookingStatus.Pending.ToString() || item.Status == BookingStatus.Confirmed.ToString()))
             .Select(item => BookingFactory.FromDb(item))
             .ToListAsync(ct);
     }

@@ -20,6 +20,7 @@ public class BookingServiceTests
         var services = new ServiceCollection();
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(dbName));
+        services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IEventsRepository, EventsRepository>();
         services.AddScoped<IEventsService, EventsService>();
@@ -162,6 +163,80 @@ public class BookingServiceTests
     }
 
     [Fact]
+    public async Task BookEvent_StartedEvent()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1", totalSeats: 1, startAt: new DateTime(2026, 1, 1));
+        var userId = Guid.NewGuid();
+
+        //Assert
+        var error = await Assert.ThrowsAsync<EventAlreadyStartedException>(() => _bookingService.CreateBookingAsync(eventId, userId));
+        Assert.Equal("This event is already started", error.Message);
+    }
+
+    [Fact]
+    public async Task BookEvent_UserLimit()
+    {
+        //Arrange
+        var totalSeats = 11;
+        var eventId = await CreateEvent("event1", totalSeats: totalSeats);
+        var userId = Guid.NewGuid();
+
+        //Act
+        var tasks = Enumerable.Range(0, totalSeats).Select(i => Task.Run(async () =>
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+            try
+            {
+                await bookingService.CreateBookingAsync(eventId, userId);
+                return true;
+            }
+            catch (TooManyBookingsException)
+            {
+                return false;
+            }
+        }));
+
+        var results = await Task.WhenAll(tasks);
+        var completedBookings = results.Count(r => r);
+        var failedBookings = totalSeats - completedBookings;
+
+        //Assert
+        Assert.Equal(10, completedBookings);
+        Assert.Equal(1, failedBookings);
+    }
+
+    [Fact]
+    public async Task BookEvent_DifferentUsersLimit()
+    {
+        //Arrange
+        var totalSeats = 11;
+        var eventId = await CreateEvent("event1", totalSeats: totalSeats);
+        var user1Id = Guid.NewGuid();
+        var user2Id = Guid.NewGuid();
+        var user1BookingsIds = new ConcurrentBag<Guid>();
+
+        //Act
+        var tasks = Enumerable.Range(0, 10).Select(i => Task.Run(async () =>
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+            var booking = await bookingService.CreateBookingAsync(eventId, user1Id);
+            user1BookingsIds.Add(booking.Id);
+        }));
+
+        await Task.WhenAll(tasks);
+
+        var user2Booking = await _bookingService.CreateBookingAsync(eventId, user2Id);
+
+        //Assert
+        Assert.Equal(10, user1BookingsIds.Count);
+        Assert.NotNull(user2Booking);
+    }
+
+    [Fact]
     public async Task GetBooking_WrongId()
     {
         //Arrange
@@ -233,9 +308,17 @@ public class BookingServiceTests
         Assert.Equal(totalSeats, uniqueBookingIds.Count);
     }
 
-    private async Task<Guid> CreateEvent(string title, int totalSeats = 1)
+    private async Task<Guid> CreateEvent(string title, int totalSeats = 1, DateTime? startAt = null )
     {
-        var eventSource = new CreateEventRequestDto() { Title = title, StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 2), TotalSeats = totalSeats };
+        var _startAt = startAt ?? DateTime.UtcNow.AddDays(1);
+        var _endAt = _startAt.AddDays(1);
+        var eventSource = new CreateEventRequestDto() 
+        { 
+            Title = title,
+            StartAt = _startAt, 
+            EndAt = _endAt, 
+            TotalSeats = totalSeats 
+        };
         var result = await _eventsService.AddEventAsync(eventSource);
 
         return result.Id;

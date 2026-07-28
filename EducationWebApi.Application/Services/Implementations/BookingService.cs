@@ -6,19 +6,16 @@ public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly IEventsRepository _eventsRepository;
-    private readonly IUsersRepository _usersRepository;
     private static readonly SemaphoreSlim _processingSemaphore = new(1, 1);
     private const int MaxUserBookingsCount = 10;
 
     public BookingService(
         IBookingRepository bookingRepository,
-        IEventsRepository eventsRepository,
-        IUsersRepository usersRepository
+        IEventsRepository eventsRepository
     )
     {
         _bookingRepository = bookingRepository;
         _eventsRepository = eventsRepository;
-        _usersRepository = usersRepository;
     }
 
     public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
@@ -56,9 +53,9 @@ public class BookingService : IBookingService
                 throw new NoAvailableSeatsException();
             }
 
-            var userActiveBookingsCount = await _usersRepository.GetUserActiveBookingsCountAsync(userId, cancellationToken);
+            var userActiveBookings = await _bookingRepository.GetActiveBookingsByUserAsync(userId, cancellationToken);
 
-            if (userActiveBookingsCount >= MaxUserBookingsCount)
+            if (userActiveBookings.Count >= MaxUserBookingsCount)
             {
                 throw new TooManyBookingsException();
             }
