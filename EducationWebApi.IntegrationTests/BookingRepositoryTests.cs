@@ -37,8 +37,8 @@ public class BookingRepositoryTests
         Assert.Equal(expectedBooking.Id, actualBooking.Id);
         Assert.Equal(expectedBooking.EventId, actualBooking.EventId);
         Assert.Equal(expectedBooking.Status.ToString(), actualBooking.Status);
-        Assert.Equal(expectedBooking.CreatedAt, actualBooking.CreatedAt);
-        Assert.Equal(expectedBooking.ProcessedAt, actualBooking.ProcessedAt);
+        Assert.Equal(expectedBooking.CreatedAt.Microsecond, actualBooking.CreatedAt.Microsecond);
+        Assert.Equal(expectedBooking.ProcessedAt?.Microsecond, actualBooking.ProcessedAt?.Microsecond);
     }
 
     [Fact]

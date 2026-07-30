@@ -16,7 +16,7 @@ namespace EducationWebApi.Infrastructure.Migrations
                 table: "bookings",
                 type: "uuid",
                 nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
+                defaultValueSql: "gen_random_uuid()");
 
             migrationBuilder.CreateTable(
                 name: "users",
@@ -49,7 +49,12 @@ namespace EducationWebApi.Infrastructure.Migrations
                 column: "UserId",
                 principalTable: "users",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.InsertData(
+                table: "users",
+                columns: new[] { "Id", "Login", "PasswordHash", "Role" },
+                values: new object[] { new Guid("5b7d895e-e776-49b2-880a-22435b255267"), "admin", "AQAAAAIAAYagAAAAEO9eG0aVlSAQZ8ulAGO1BsAF12ST745iOvUKlBDpP5yWKONDf9H+yJbhiZL9OUGbuA==", "Admin" });
         }
 
         /// <inheritdoc />

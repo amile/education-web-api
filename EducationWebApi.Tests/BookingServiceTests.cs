@@ -128,7 +128,7 @@ public class BookingServiceTests
         var expectedBooking = await _bookingService.CreateBookingAsync(eventId, userId);
 
         //Act
-        var actualBooking = await _bookingService.GetBookingByIdAsync(expectedBooking.Id);
+        var actualBooking = await _bookingService.GetBookingByIdAsync(expectedBooking.Id, userId, null);
 
         //Assert
         Assert.NotNull(actualBooking);
@@ -246,7 +246,7 @@ public class BookingServiceTests
         var wrongId = Guid.NewGuid();
 
         //Assert
-        var error = await Assert.ThrowsAsync<NotFoundException>(() => _bookingService.GetBookingByIdAsync(wrongId));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => _bookingService.GetBookingByIdAsync(wrongId, userId, null));
         Assert.Equal($"Booking Id: {wrongId} not found", error.Message);
     }
 

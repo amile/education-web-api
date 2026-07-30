@@ -60,12 +60,12 @@ public class GlobalExceptionHandlingMiddleware
             BadHttpRequestException => StatusCodes.Status400BadRequest,
             ValidationException => StatusCodes.Status400BadRequest,
             EventAlreadyStartedException => StatusCodes.Status400BadRequest,
+            InvalidCredentialsException => StatusCodes.Status401Unauthorized,
             NoPermissionException => StatusCodes.Status403Forbidden,
             NotFoundException => StatusCodes.Status404NotFound,
             NoAvailableSeatsException => StatusCodes.Status409Conflict,
             TooManyBookingsException => StatusCodes.Status409Conflict,
+            BookingAlreadyCancelledException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
-
-
 }

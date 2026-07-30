@@ -1,3 +1,4 @@
+using EducationWebApi.Application.Helpers;
 using EducationWebApi.Domain;
 
 namespace EducationWebApi.Application;
@@ -20,9 +21,9 @@ public class UsersService : IUsersService
     {
         var user = await _usersRepository.GetUserByLoginAsync(userRequest.Login, cancellationToken);
 
-        if (user is null || HashDataHelper.GetHash(userRequest.Password) != user.PasswordHash)
+        if (user is null || !HashDataHelper.Verify(userRequest.Login, userRequest.Password, user.PasswordHash))
         {
-            throw new UnauthorizedAccessException($"Incorrect login or password");
+            throw new InvalidCredentialsException();
         }
 
         var token = await _jwtTokenService.GenerateToken(user);
@@ -32,7 +33,8 @@ public class UsersService : IUsersService
 
     public async Task<TokenResultDto> RegisterUserAsync(RegisterUserRequestDto userRequest, CancellationToken cancellationToken = default)
     {
-        var user = new User(userRequest.Login, HashDataHelper.GetHash(userRequest.Password), userRequest.Role ?? UserRole.User);
+        var passwordHash = HashDataHelper.Hash(userRequest.Login, userRequest.Password);
+        var user = new User(userRequest.Login, passwordHash, UserRole.User);
         await _usersRepository.AddUserAsync(user, cancellationToken);
         await _usersRepository.SaveChangesAsync(cancellationToken);
 

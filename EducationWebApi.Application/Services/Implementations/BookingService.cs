@@ -18,13 +18,20 @@ public class BookingService : IBookingService
         _eventsRepository = eventsRepository;
     }
 
-    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
+    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, Guid userId, string? userRole, CancellationToken cancellationToken = default)
     {
         var booking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
 
         if (booking is null)
         {
             throw new NotFoundException($"Booking Id: {bookingId} not found");
+        }
+
+        var isOwner = booking.UserId == userId;
+        var isAdmin = string.Equals(userRole, UserRole.Admin.ToString(), StringComparison.Ordinal);
+        if (!isOwner && !isAdmin)
+        {
+            throw new NoPermissionException();
         }
 
         return BookingDto.FromDomain(booking);
@@ -73,7 +80,7 @@ public class BookingService : IBookingService
         }
     }
 
-    public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid userId, string userRole, CancellationToken cancellationToken = default)
+    public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid userId, string? userRole, CancellationToken cancellationToken = default)
     {
         await _processingSemaphore.WaitAsync();
 
@@ -86,14 +93,23 @@ public class BookingService : IBookingService
                 throw new NotFoundException($"Booking Id: {bookingId} not found");
             }
 
-            if (booking.UserId != userId || userRole != UserRole.Admin.ToString())
+            var isOwner = booking.UserId == userId;
+            var isAdmin = string.Equals(userRole, UserRole.Admin.ToString(), StringComparison.Ordinal);
+            if (!isOwner && !isAdmin)
             {
                 throw new NoPermissionException();
             }
 
+            var domainEvent = await _eventsRepository.GetEventByIdAsync(booking.EventId, cancellationToken) ?? throw new NotFoundException($"Event Id: {booking.EventId} not found");
+
+            if (domainEvent.AlreadyStarted())
+            {
+                throw new EventAlreadyStartedException();
+            }
+
             if (!booking.CancelBooking())
             {
-                throw new ArgumentException($"Booking Id: {bookingId} is already cancelled");
+                throw new BookingAlreadyCancelledException();
             }
 
             await _bookingRepository.CancelBookingAsync(booking.Id, cancellationToken);

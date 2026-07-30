@@ -1,11 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using EducationWebApi.Application;
 using EducationWebApi.Domain;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EducationWebApi.Application;
+namespace EducationWebApi.Infrastructure.Secure;
 
 public class JWTTokenService : IJWTTokenService
 {
@@ -31,7 +32,7 @@ public class JWTTokenService : IJWTTokenService
             issuer: _jwtTokenConfig.Issuer,
             audience: _jwtTokenConfig.Audience,
             claims: claims,
-            expires: DateTime.Now.AddMinutes(_jwtTokenConfig.ExpiresMinutes),
+            expires: DateTime.UtcNow.AddMinutes(_jwtTokenConfig.ExpiresMinutes),
             signingCredentials: creds
         );
 

@@ -89,9 +89,9 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
-        var eventId1 = CreateEvent(context, "Event1");
-        var eventId2 = CreateEvent(context, "Event2");
-        var eventId3 = CreateEvent(context, "Event3");
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1));
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2));
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 3));
         await repository.SaveChangesAsync();
 
         //Act
@@ -112,9 +112,9 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
-        var eventId1 = CreateEvent(context, "Event1");
-        var eventId2 = CreateEvent(context, "Event2");
-        var eventId3 = CreateEvent(context, "Event3");
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1));
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2));
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 3));
         await repository.SaveChangesAsync();
 
         //Act
@@ -183,9 +183,9 @@ public class EventsRepositoryTests
         var repository = new EventsRepository(context);
         var filterTo = new DateTime(2026, 1, 2).ToUniversalTime();
 
-        var eventId1 = CreateEvent(context, "Event1", endAt: new DateTime(2026, 1, 1).ToUniversalTime());
-        var eventId2 = CreateEvent(context, "Event2", endAt: filterTo);
-        var eventId3 = CreateEvent(context, "Event3", endAt: new DateTime(2026, 1, 3).ToUniversalTime());
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 1).ToUniversalTime());
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2), endAt: filterTo);
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3).ToUniversalTime());
         await repository.SaveChangesAsync();
 
         //Act
@@ -227,8 +227,8 @@ public class EventsRepositoryTests
 
         var eventId = CreateEvent(context, 
             title: "Event", 
-            startAt: new DateTime(2025, 1, 1).ToUniversalTime(),
-            endAt: new DateTime(2025, 1, 2).ToUniversalTime(), 
+            startAt: new DateTime(2025, 1, 1),
+            endAt: new DateTime(2025, 1, 2), 
             totalSeats: 5
         );
         await repository.SaveChangesAsync();
@@ -354,12 +354,14 @@ public class EventsRepositoryTests
     )
     {
         var eventId = Guid.NewGuid();
+        var _startAt = startAt ?? new DateTime(2026, 1, 1);
+        var _endAt = endAt ?? _startAt.AddDays(1);
         context.Events.Add(new EventEntity()
         {
             Id = eventId,
             Title = title,
-            StartAt = startAt ?? DateTime.UtcNow,
-            EndAt = endAt ?? DateTime.UtcNow,
+            StartAt = _startAt.ToUniversalTime(),
+            EndAt = _endAt.ToUniversalTime(),
             TotalSeats = totalSeats,
             AvailableSeats = totalSeats,
         });

@@ -1,6 +1,5 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EducationWebApi.Application;
@@ -11,6 +10,7 @@ public static class ServiceCollectionExtensions
     {
         var tokenConfigSection = configuration.GetSection("token");
         var tokenConfig = tokenConfigSection.Get<JWTTokenConfig>() ?? throw new ArgumentNullException("Token config section is empty");
+        if (string.IsNullOrEmpty(tokenConfig.Secret)) throw new ArgumentNullException("Token secret is empty");
         sc.Configure<JWTTokenConfig>(tokenConfigSection);
 
         sc.AddAuthentication(options => 

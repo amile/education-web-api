@@ -5,8 +5,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDataAccess(builder.Configuration);
-builder.Services.AddRepositories();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAuth(builder.Configuration);
 
@@ -73,3 +72,5 @@ app.MapGet("/health", () =>
 });
 
 app.Run();
+
+public partial class Program { }
