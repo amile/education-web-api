@@ -120,7 +120,7 @@ public class BookingServiceTests
     }
 
     [Fact]
-    public async Task GetBooking_Ok()
+    public async Task GetBookingByOwner_Ok()
     {
         //Arrange
         var eventId = await CreateEvent("event1");
@@ -129,6 +129,24 @@ public class BookingServiceTests
 
         //Act
         var actualBooking = await _bookingService.GetBookingByIdAsync(expectedBooking.Id, userId, null);
+
+        //Assert
+        Assert.NotNull(actualBooking);
+        Assert.Equal(expectedBooking.Id, actualBooking.Id);
+        Assert.Equal(expectedBooking.EventId, actualBooking.EventId);
+        Assert.Equal(expectedBooking.Status, actualBooking.Status);
+    }
+
+    [Fact]
+    public async Task GetBookingByAdmin_Ok()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1");
+        var userId = Guid.NewGuid();
+        var expectedBooking = await _bookingService.CreateBookingAsync(eventId, userId);
+
+        //Act
+        var actualBooking = await _bookingService.GetBookingByIdAsync(expectedBooking.Id, Guid.NewGuid(), UserRole.Admin.ToString());
 
         //Assert
         Assert.NotNull(actualBooking);
@@ -251,6 +269,19 @@ public class BookingServiceTests
     }
 
     [Fact]
+    public async Task GetBooking_Forbidden()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1");
+        var userId = Guid.NewGuid();
+        var booking = await _bookingService.CreateBookingAsync(eventId, userId);
+
+        //Assert
+        var error = await Assert.ThrowsAsync<NoPermissionException>(() => _bookingService.GetBookingByIdAsync(booking.Id, Guid.NewGuid(), null));
+        Assert.Equal($"No permission to perform the requested action", error.Message);
+    }
+
+    [Fact]
     public async Task BookEvent_RaceCondition()
     {
         //Arrange
@@ -306,6 +337,49 @@ public class BookingServiceTests
 
         //Assert
         Assert.Equal(totalSeats, uniqueBookingIds.Count);
+    }
+
+    [Fact]
+    public async Task CancelBookingByOwner_Ok()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1");
+        var userId = Guid.NewGuid();
+        var booking = await _bookingService.CreateBookingAsync(eventId, userId);
+
+        //Act
+        var cancelledBooking = await _bookingService.CancelBookingAsync(booking.Id, userId, null);
+
+        //Assert
+        Assert.NotNull(cancelledBooking);
+        Assert.Equal(BookingStatus.Cancelled, cancelledBooking.Status);
+    }
+
+    [Fact]
+    public async Task CancelBookingByAdmin_Ok()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1");
+        var booking = await _bookingService.CreateBookingAsync(eventId, Guid.NewGuid());
+
+        //Act
+        var cancelledBooking = await _bookingService.CancelBookingAsync(booking.Id, Guid.NewGuid(), UserRole.Admin.ToString());
+
+        //Assert
+        Assert.NotNull(cancelledBooking);
+        Assert.Equal(BookingStatus.Cancelled, cancelledBooking.Status);
+    }
+
+    [Fact]
+    public async Task CancelBooking_Forbidden()
+    {
+        //Arrange
+        var eventId = await CreateEvent("event1");
+        var booking = await _bookingService.CreateBookingAsync(eventId, Guid.NewGuid());
+
+        //Assert
+        var error = await Assert.ThrowsAsync<NoPermissionException>(() => _bookingService.CancelBookingAsync(booking.Id, Guid.NewGuid(), UserRole.User.ToString()));
+        Assert.Equal("No permission to perform the requested action", error.Message);
     }
 
     private async Task<Guid> CreateEvent(string title, int totalSeats = 1, DateTime? startAt = null )

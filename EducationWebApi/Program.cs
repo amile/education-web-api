@@ -1,5 +1,6 @@
 using EducationWebApi.Application;
 using EducationWebApi.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -70,6 +71,14 @@ app.MapGet("/health", () =>
 {
     return DateTime.Now;
 });
+
+// For tests only
+app.MapGet("/admin-health", () =>
+{
+    return DateTime.Now;
+})
+.RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" })
+.ExcludeFromDescription();;
 
 app.Run();
 

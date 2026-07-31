@@ -4,11 +4,13 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
-{
-    public const string AuthenticationScheme = "TestScheme";
+namespace EducationWebApi.Tests;
 
-    public TestAuthHandler(
+public class TestAuthUserHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    public const string AuthenticationScheme = "TestUserScheme";
+
+    public TestAuthUserHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder
@@ -20,12 +22,12 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         { 
             new Claim(ClaimTypes.Name, "TestUser"),
             new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim(ClaimTypes.Role, "Admin")
+            new Claim(ClaimTypes.Role, "User")
         };
 
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "Test");
+        var ticket = new AuthenticationTicket(principal, AuthenticationScheme);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }

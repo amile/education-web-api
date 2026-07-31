@@ -2,7 +2,7 @@ namespace EducationWebApi.Domain;
 
 public class InvalidCredentialsException : Exception
 {
-    public InvalidCredentialsException() : base($"Incorrect login or password")
+    public InvalidCredentialsException() : base("Incorrect login or password")
     {}
 
     public InvalidCredentialsException(string message) : base(message)
