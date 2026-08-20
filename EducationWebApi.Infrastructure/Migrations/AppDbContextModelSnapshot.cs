@@ -40,9 +40,14 @@ namespace EducationWebApi.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("bookings", (string)null);
                 });
@@ -77,6 +82,41 @@ namespace EducationWebApi.Infrastructure.Migrations
                     b.ToTable("events", (string)null);
                 });
 
+            modelBuilder.Entity("EducationWebApi.Infrastructure.UserEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
+
+                    b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("5b7d895e-e776-49b2-880a-22435b255267"),
+                            Login = "admin",
+                            PasswordHash = "AQAAAAIAAYagAAAAEO9eG0aVlSAQZ8ulAGO1BsAF12ST745iOvUKlBDpP5yWKONDf9H+yJbhiZL9OUGbuA==",
+                            Role = "Admin"
+                        });
+                });
+
             modelBuilder.Entity("EducationWebApi.Infrastructure.BookingEntity", b =>
                 {
                     b.HasOne("EducationWebApi.Infrastructure.EventEntity", "Event")
@@ -85,10 +125,23 @@ namespace EducationWebApi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EducationWebApi.Infrastructure.UserEntity", "User")
+                        .WithMany("Bookings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EducationWebApi.Infrastructure.EventEntity", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("EducationWebApi.Infrastructure.UserEntity", b =>
                 {
                     b.Navigation("Bookings");
                 });

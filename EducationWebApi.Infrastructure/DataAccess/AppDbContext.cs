@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EducationWebApi.Application.Helpers;
+using EducationWebApi.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace EducationWebApi.Infrastructure;
 
@@ -6,6 +8,7 @@ public class AppDbContext : DbContext
 {
     public DbSet<EventEntity> Events { get; set; }
     public DbSet<BookingEntity> Bookings { get; set; }
+    public DbSet<UserEntity> Users { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)

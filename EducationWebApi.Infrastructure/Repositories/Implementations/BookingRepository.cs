@@ -1,6 +1,7 @@
 using EducationWebApi.Application;
 using EducationWebApi.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace EducationWebApi.Infrastructure;
 
@@ -13,12 +14,13 @@ public class BookingRepository : IBookingRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Booking> AddBookingAsync(Guid eventId, CancellationToken ct = default)
+    public async Task<Booking> AddBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default)
     {
         var dbBooking = new BookingEntity()
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
+            UserId = userId,
             Status = BookingStatus.Pending.ToString(),
             CreatedAt = DateTime.UtcNow,
         };
@@ -43,13 +45,21 @@ public class BookingRepository : IBookingRepository
             .ToListAsync(ct);
     }
 
+    public Task<List<Booking>> GetActiveBookingsByUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        return _dbContext.Bookings
+            .Where(item => item.UserId == userId && (item.Status == BookingStatus.Pending.ToString() || item.Status == BookingStatus.Confirmed.ToString()))
+            .Select(item => BookingFactory.FromDb(item))
+            .ToListAsync(ct);
+    }
+
     public async Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default)
     {
         var dbBooking = await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
 
         if (dbBooking is null)
         {
-            throw new KeyNotFoundException($"Booking Id: {id} not found");
+            throw new NotFoundException($"Booking Id: {id} not found");
         }
 
         dbBooking.Status = status.ToString();
@@ -65,6 +75,11 @@ public class BookingRepository : IBookingRepository
     public Task RejectBookingAsync(Guid id, CancellationToken ct = default)
     {
         return UpdateStatusAsync(id, BookingStatus.Rejected, ct);
+    }
+
+    public Task CancelBookingAsync(Guid id, CancellationToken ct = default)
+    {
+        return UpdateStatusAsync(id, BookingStatus.Cancelled, ct);
     }
 
     public async Task SaveChangesAsync(CancellationToken ct = default)

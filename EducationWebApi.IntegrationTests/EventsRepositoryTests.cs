@@ -89,9 +89,9 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
-        var eventId1 = CreateEvent(context, "Event1");
-        var eventId2 = CreateEvent(context, "Event2");
-        var eventId3 = CreateEvent(context, "Event3");
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1));
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2));
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 3));
         await repository.SaveChangesAsync();
 
         //Act
@@ -112,9 +112,9 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var repository = new EventsRepository(context);
 
-        var eventId1 = CreateEvent(context, "Event1");
-        var eventId2 = CreateEvent(context, "Event2");
-        var eventId3 = CreateEvent(context, "Event3");
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1));
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2));
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 3));
         await repository.SaveChangesAsync();
 
         //Act
@@ -183,9 +183,9 @@ public class EventsRepositoryTests
         var repository = new EventsRepository(context);
         var filterTo = new DateTime(2026, 1, 2).ToUniversalTime();
 
-        var eventId1 = CreateEvent(context, "Event1", endAt: new DateTime(2026, 1, 1).ToUniversalTime());
-        var eventId2 = CreateEvent(context, "Event2", endAt: filterTo);
-        var eventId3 = CreateEvent(context, "Event3", endAt: new DateTime(2026, 1, 3).ToUniversalTime());
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1), endAt: new DateTime(2026, 1, 1).ToUniversalTime());
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2), endAt: filterTo);
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 2), endAt: new DateTime(2026, 1, 3).ToUniversalTime());
         await repository.SaveChangesAsync();
 
         //Act
@@ -227,8 +227,8 @@ public class EventsRepositoryTests
 
         var eventId = CreateEvent(context, 
             title: "Event", 
-            startAt: new DateTime(2025, 1, 1).ToUniversalTime(),
-            endAt: new DateTime(2025, 1, 2).ToUniversalTime(), 
+            startAt: new DateTime(2025, 1, 1),
+            endAt: new DateTime(2025, 1, 2), 
             totalSeats: 5
         );
         await repository.SaveChangesAsync();
@@ -276,7 +276,7 @@ public class EventsRepositoryTests
             endAt: new DateTime(2026, 1, 2).ToUniversalTime(),
             totalSeats: 10
         );
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.ChangeEventAsync(eventToChange));;
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => repository.ChangeEventAsync(eventToChange));;
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class EventsRepositoryTests
         var repository = new EventsRepository(context);
 
         //Assert
-        var error = await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.RemoveEventAsync(Guid.NewGuid()));
+        var error = await Assert.ThrowsAsync<NotFoundException>(() => repository.RemoveEventAsync(Guid.NewGuid()));
     }
 
     [Fact]
@@ -320,13 +320,14 @@ public class EventsRepositoryTests
         await using var context = _dbFixture.CreateContext();
         var eventId1 = CreateEvent(context, "Event1");
         var eventId2 = CreateEvent(context, "Event2");
+        var userId = CreateUser(context);
         var expectedBookingId1 = Guid.NewGuid();
         var expectedBookingId2 = Guid.NewGuid();
 
         context.Bookings.AddRange(
-            new BookingEntity { Id = expectedBookingId1, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
-            new BookingEntity { Id = expectedBookingId2, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
-            new BookingEntity { Id = Guid.NewGuid(), EventId = eventId2, Status = "Pending", CreatedAt = DateTime.UtcNow }
+            new BookingEntity { Id = expectedBookingId1, UserId = userId, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = expectedBookingId2, UserId = userId, EventId = eventId1, Status = "Pending", CreatedAt = DateTime.UtcNow },
+            new BookingEntity { Id = Guid.NewGuid(), UserId = userId, EventId = eventId2, Status = "Pending", CreatedAt = DateTime.UtcNow }
         );
         await context.SaveChangesAsync();
 
@@ -353,16 +354,32 @@ public class EventsRepositoryTests
     )
     {
         var eventId = Guid.NewGuid();
+        var _startAt = startAt ?? new DateTime(2026, 1, 1);
+        var _endAt = endAt ?? _startAt.AddDays(1);
         context.Events.Add(new EventEntity()
         {
             Id = eventId,
             Title = title,
-            StartAt = startAt ?? DateTime.UtcNow,
-            EndAt = endAt ?? DateTime.UtcNow,
+            StartAt = _startAt.ToUniversalTime(),
+            EndAt = _endAt.ToUniversalTime(),
             TotalSeats = totalSeats,
             AvailableSeats = totalSeats,
         });
 
         return eventId;
+    }
+
+    private Guid CreateUser(AppDbContext context)
+    {
+        var userId = Guid.NewGuid();
+        context.Users.Add(new UserEntity()
+        {
+            Id = userId,
+            Login = "User",
+            PasswordHash = "Password",
+            Role = "User",
+        });
+
+        return userId;
     }
 }

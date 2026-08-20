@@ -1,8 +1,11 @@
+using System.Security.Claims;
 using EducationWebApi.Application;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationWebApi;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 
@@ -36,6 +39,7 @@ public class EventsController : ControllerBase
         return result;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Guid>> Post([FromBody] CreateEventRequestDto item)
     {
@@ -43,6 +47,7 @@ public class EventsController : ControllerBase
         return result.Id;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<ActionResult<EventDto>> Put(Guid id, [FromBody] UpdateEventRequestDto item)
     {
@@ -51,6 +56,7 @@ public class EventsController : ControllerBase
         return result;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -69,7 +75,12 @@ public class EventsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BookingDto>> Booking(Guid id)
     {
-        var booking = await _bookingService.CreateBookingAsync(id);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var booking = await _bookingService.CreateBookingAsync(id, Guid.Parse(userId));
 
         return Accepted($"/api/bookings/{booking.Id}", booking);
     }

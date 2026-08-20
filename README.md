@@ -51,11 +51,66 @@ dotnet test
 ## Формат ошибок
 Для описания ошибок используется Problem Details (RFC 7807)
 
+## Аутентификация
+
+В приложении настроена JWT-аутентификация
+Конфигурация JWT токена по умолчанию прописана в файле appsettings.json, блоке "token".
+В production рекомендуется хранить конфигурацию в переменных окружения,
+защищенных конфигурационных файлах, специальных менеджерах секретов.
+Секрет для токена (TOKEN__SECRET) не прописан в appsettings.json, его необходимо добавить отдельно, например в переменные окружения.
+
+Для работы в Swagger также необходимо ввести токен аутентификации, методы получения токена описаны ниже.
+
 ## 🚀 API Endpoints
 
+### Регистрация пользователя
+POST /users/auth/register
+
+#### Параметры тела запроса
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `login` | `string` | Yes | Логин пользователя |
+| `password`| `string` | Yes | Пароль пользователя |
+| `role` | `UserRole` | No | Роль пользователя |
+
+*Роли пользователя*
+UserRole
+{
+    Admin,
+    User
+}
+
+#### Успешный ответ
+* **Code:** 200 Ok
+* **Content:**
+```json
+{
+  "accessToken": "eyJhbGciO...ZVDfcgN1hICLKrKd9FZC7icI"
+}
+```
+
+### Вход пользователя в систему
+POST /users/auth/login
+
+#### Параметры тела запроса
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `login` | `string` | Yes | Логин пользователя |
+| `password`| `string` | Yes | Пароль пользователя |
+
+#### Успешный ответ
+* **Code:** 200 Ok
+* **Content:**
+```json
+{
+  "accessToken": "eyJhbGciO...ZVDfcgN1hICLKrKd9FZC7icI"
+}
+```
 
 ### Создание события
-POST /api/events
+POST /api/events - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** Admin
 
 #### Параметры тела запроса
 | Field | Type | Required | Description |
@@ -74,7 +129,9 @@ Guid a4c2c736-e466-49a5-b14d-fd7dc7488417
 При успешном создании события доступное количество мест для бронирования - availableSeats устанавливается равным totalSeats
 
 ### Получение пагинированного списка событий
-GET /api/events
+GET /api/events - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** User, Admin
 
 #### Query параметры
 Title: string - фильтр по наименованию события
@@ -107,7 +164,9 @@ PageSize: int - размер страницы пагинированного с�
 
 
 ### Получение информации о событии
-GET /api/events/{id}
+GET /api/events/{id} - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** User, Admin
 
 #### Параметры запроса из url
 id - Уникальный идентификатор события
@@ -139,7 +198,9 @@ id - Уникальный идентификатор события
 
 
 ### Редактирование события
-PUT /api/events/{id}
+PUT /api/events/{id} - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** Admin
 
 #### Параметры запроса из url
 id - Уникальный идентификатор события
@@ -179,7 +240,9 @@ id - Уникальный идентификатор события
 
 
 ### Удаление события
-DELETE /api/events/{id}
+DELETE /api/events/{id} - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** Admin
 
 #### Параметры запроса из url
 id - Уникальный идентификатор события
@@ -199,7 +262,9 @@ id - Уникальный идентификатор события
 
 
 ### Бронирование событий
-POST /api/events/{id}/book
+POST /api/events/{id}/book - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** User, Admin
 
 #### Параметры запроса из url
 id - Уникальный идентификатор события
@@ -236,7 +301,9 @@ id - Уникальный идентификатор события
 ```
 
 ### Получение информации о бронировании
-GET /api/bookings/{id}
+GET /api/bookings/{id} - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** User (for owner), Admin
 
 #### Параметры запроса из url
 id - Уникальный идентификатор бронирования
@@ -249,6 +316,37 @@ id - Уникальный идентификатор бронирования
   "id": "31839166-b54c-47bf-89ea-5acb9e6630cf",
   "eventId": "4475f184-04d3-48e8-811e-3d74a0de3bab",
   "status": "Confirmed",
+  "createdAt": "2026-06-02T04:44:39.935285Z",
+  "processedAt": "2026-06-02T04:44:43.79273Z"
+}
+```
+
+#### Error
+* **Code:** 404 Not Found
+* **Content:**
+```json
+{
+  "status": 404,
+  "detail": "Booking Id: 31839166-b54c-47bf-89ea-5acb9e6630ca not found"
+}
+```
+
+### Отмена бронирования
+DELETE /api/bookings/{id} - Auth Required
+* **Headers:** `Authorization: Bearer <token>`
+* **Allowed Roles:** User (for owner), Admin
+
+#### Параметры запроса из url
+id - Уникальный идентификатор бронирования
+
+#### Успешный ответ
+* **Code:** 200 Ok
+* **Content:**
+```json
+{
+  "id": "31839166-b54c-47bf-89ea-5acb9e6630cf",
+  "eventId": "4475f184-04d3-48e8-811e-3d74a0de3bab",
+  "status": "Cancelled",
   "createdAt": "2026-06-02T04:44:39.935285Z",
   "processedAt": "2026-06-02T04:44:43.79273Z"
 }

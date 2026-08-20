@@ -57,4 +57,9 @@ public class Event
             AvailableSeats = availableSeats;
         }
     }
+
+    public bool AlreadyStarted()
+    {
+        return StartAt.ToUniversalTime() <= DateTime.UtcNow;
+    }
 }

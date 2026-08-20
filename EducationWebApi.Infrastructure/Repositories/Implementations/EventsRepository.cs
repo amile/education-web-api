@@ -63,7 +63,7 @@ public class EventsRepository : IEventsRepository
 
         if (dbEvent is null)
         {
-            throw new KeyNotFoundException($"Event Id: {item.Id} not found");
+            throw new NotFoundException($"Event Id: {item.Id} not found");
         }
 
         dbEvent.Title = item.Title;
@@ -82,7 +82,7 @@ public class EventsRepository : IEventsRepository
 
         if (dbEvent is null)
         {
-            throw new KeyNotFoundException($"Event Id: {id} not found");
+            throw new NotFoundException($"Event Id: {id} not found");
         }
 
         _dbContext.Events.Remove(dbEvent);

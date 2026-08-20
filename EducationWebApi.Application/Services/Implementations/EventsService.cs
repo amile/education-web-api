@@ -29,7 +29,7 @@ public class EventsService : IEventsService
 
         if (domainEvent is null)
         {
-            throw new KeyNotFoundException($"Event Id: {id} not found");
+            throw new NotFoundException($"Event Id: {id} not found");
         }
 
         return EventDto.FromDomain(domainEvent);
@@ -55,7 +55,7 @@ public class EventsService : IEventsService
 
         if (savedEvent is null)
         {
-            throw new KeyNotFoundException($"Event Id: {id} not found");
+            throw new NotFoundException($"Event Id: {id} not found");
         }
 
         savedEvent.Title = item.Title;
