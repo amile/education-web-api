@@ -1,3 +1,4 @@
+using Contracts;
 using Events.Application;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtensions
     {
         AddDataAccess(sc, configuration);
         AddRepositories(sc);
+        AddKafkaConsumer(sc, configuration);
 
         return sc;
     }
@@ -30,6 +32,18 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection sc)
     {
         sc.AddScoped<IEventsRepository, EventsRepository>();
+
+        return sc;
+    }
+
+    public static IServiceCollection AddKafkaConsumer(this IServiceCollection sc, IConfiguration configuration)
+    {
+        var kafkaConfigSection = configuration.GetSection(KafkaConstants.KafkaSettingsSectionName);
+        var kafkaConfig = kafkaConfigSection.Get<KafkaConfig>() ?? throw new ArgumentNullException("Kafka config section is empty");
+        sc.Configure<KafkaConfig>(kafkaConfigSection);
+
+        sc.AddHostedService<KafkaInitializerService>();
+        sc.AddHostedService<BookingConsumerService>();
 
         return sc;
     }
