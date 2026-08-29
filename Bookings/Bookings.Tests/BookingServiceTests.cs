@@ -5,6 +5,7 @@ using Bookings.Infrastructure;
 using Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Bookings.Tests;
 
@@ -18,6 +19,15 @@ public class BookingServiceTests
     {
         var dbName = Guid.NewGuid().ToString();
         var services = new ServiceCollection();
+        
+        services.AddLogging();
+
+        services.Configure<KafkaConfig>(options =>
+        {
+            options.BootstrapServers = "localhost:9092";
+        });
+        services.AddSingleton<IBookingProviderService, BookingProviderService>();
+
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(dbName));
         services.AddScoped<IBookingRepository, BookingRepository>();

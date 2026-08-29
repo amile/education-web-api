@@ -41,7 +41,7 @@ public class BookingConsumerService : BackgroundService
         return Task.Run(() => Consume(cancellationToken), cancellationToken);
     }
 
-    private async void Consume(CancellationToken cancellationToken)
+    private async Task Consume(CancellationToken cancellationToken)
     {
         _consumer.Subscribe(KafkaConstants.BookingConfirmedTopicName);
 
