@@ -6,16 +6,16 @@ namespace Users.Presentation;
 [ApiController]
 [Route("[controller]")]
 
-public class UsersController : ControllerBase
+public class AuthController : ControllerBase
 {
     private readonly IUsersService _usersService;
 
-    public UsersController(IUsersService usersService)
+    public AuthController(IUsersService usersService)
     {
         _usersService = usersService;
     }
 
-    [HttpPost("auth/register")]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserRequestDto request, CancellationToken ct)
     {
         var token = await _usersService.RegisterUserAsync(request, ct);
@@ -23,7 +23,7 @@ public class UsersController : ControllerBase
         return Ok(token);
     }
 
-    [HttpPost("auth/login")]
+    [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserRequestDto request, CancellationToken ct)
     {
         var token = await _usersService.LoginUserAsync(request, ct);

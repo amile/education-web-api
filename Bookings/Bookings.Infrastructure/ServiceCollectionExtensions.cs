@@ -1,5 +1,4 @@
 using Bookings.Application;
-using Confluent.Kafka;
 using Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -41,19 +40,9 @@ public static class ServiceCollectionExtensions
     {
         var kafkaConfigSection = configuration.GetSection(KafkaConstants.KafkaSettingsSectionName);
         var kafkaConfig = kafkaConfigSection.Get<KafkaConfig>() ?? throw new ArgumentNullException("Kafka config section is empty"); 
+        sc.Configure<KafkaConfig>(kafkaConfigSection);
 
-        var producerConfig = new ProducerConfig
-        {
-            BootstrapServers = kafkaConfig.BootstrapServers,
-            Acks = Acks.All,
-        };
-
-        sc.AddSingleton<IProducer<string, string>>(sp => 
-        {
-            return new ProducerBuilder<string, string>(producerConfig).Build();
-        });
-
-        sc.AddScoped<IBookingProviderService, BookingProviderService>();
+        sc.AddSingleton<IBookingProviderService, BookingProviderService>();
 
         return sc;
     }

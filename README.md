@@ -34,7 +34,7 @@ docker compose up -d
 ## Проверка работоспособности
 http://localhost:5003/health - users service
 http://localhost:5004/health - events service
-http://localhost:5004/health - bookings service
+http://localhost:5005/health - bookings service
 
 ## Swagger
 {serviceHost}/swagger
@@ -61,7 +61,7 @@ dotnet test (производится в директории каждого с�
 ## 🚀 API Endpoints
 
 ### Регистрация пользователя
-POST {usersServiceHost}/users/auth/register
+POST {usersServiceHost}/auth/register
 
 #### Параметры тела запроса
 | Field | Type | Required | Description |
@@ -87,7 +87,7 @@ UserRole
 ```
 
 ### Вход пользователя в систему
-POST {usersServiceHost}/users/auth/login
+POST {usersServiceHost}/auth/login
 
 #### Параметры тела запроса
 | Field | Type | Required | Description |

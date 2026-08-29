@@ -2,18 +2,26 @@ using Bookings.Domain;
 using Confluent.Kafka;
 using Contracts;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace Bookings.Application;
 
-public class BookingProviderService : IBookingProviderService
+public class BookingProviderService : IBookingProviderService, IDisposable
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<BookingProviderService> _logger;
 
-    public BookingProviderService(IProducer<string, string> producer, ILogger<BookingProviderService> logger)
+    public BookingProviderService(IOptions<KafkaConfig> options, ILogger<BookingProviderService> logger)
     {
-        _producer = producer;
+        var kafkaConfig = options.Value;
+        var producerConfig = new ProducerConfig
+        {
+            BootstrapServers = kafkaConfig.BootstrapServers,
+            Acks = Acks.All,
+        };
+
+        _producer = new ProducerBuilder<string, string>(producerConfig).Build();
         _logger = logger;
     }
 
@@ -34,5 +42,11 @@ public class BookingProviderService : IBookingProviderService
         }, cancellationToken);
 
         _logger.LogInformation("Publish booking {BookingId} to confirm", bookingConfirmed.BookingId);
+    }
+
+    public void Dispose()
+    {
+        _producer.Flush(TimeSpan.FromSeconds(5));
+        _producer.Dispose();
     }
 }

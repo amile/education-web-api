@@ -44,48 +44,30 @@ public class BookingConsumerService : BackgroundService
     private async void Consume(CancellationToken cancellationToken)
     {
         _consumer.Subscribe(KafkaConstants.BookingConfirmedTopicName);
-        using var scope = _scopeFactory.CreateScope();
-        var eventsRepository = scope.ServiceProvider.GetRequiredService<IEventsRepository>();
 
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogInformation("BookingConsumerService while {time}", DateTime.UtcNow);
+                ConsumeResult<string, string>? consumeResult;
 
-                var consumeResult = _consumer.Consume(cancellationToken);
-
-                var booking = JsonSerializer.Deserialize<BookingConfirmed>(consumeResult.Message.Value);
-
-                if (booking is null)
+                try
                 {
-                    _logger.LogWarning("Booking deserialize error");
+                    consumeResult = _consumer.Consume(cancellationToken);;
+                }
+                catch (ConsumeException ex)
+                {
+                    _logger.LogError(ex, "Error while consuming from Kafka");
                     continue;
                 }
 
-                var eventItem = await eventsRepository.GetEventByIdAsync(booking.EventId, cancellationToken);
-
-                if (eventItem is null)
+                if (consumeResult is null)
                 {
-                    _logger.LogWarning("Event id: {eventId} not found", booking.EventId);
+                    _logger.LogWarning("Consume result from Kafka is null");
                     continue;
                 }
 
-                if (eventItem.AlreadyStarted())
-                {
-                    _logger.LogWarning("Event id: {eventId} already started", booking.EventId);
-                    continue;
-                }
-
-                if (!eventItem.TryReserveSeats())
-                {
-                    _logger.LogWarning("Event id: {eventId} has no available seats", booking.EventId);
-                    continue;
-                }
-
-                await eventsRepository.ChangeEventAsync(eventItem, cancellationToken);
-                await eventsRepository.SaveChangesAsync(cancellationToken);
-                _logger.LogInformation("Booking event id: {eventId} succeeded", booking.EventId);
+                await HandleConsumeResultAsync(consumeResult, cancellationToken);
             }
         }
         catch (OperationCanceledException)
@@ -95,6 +77,54 @@ public class BookingConsumerService : BackgroundService
         {
             _consumer.Close();
         }
+    }
+
+    
+    private async Task HandleConsumeResultAsync(ConsumeResult<string, string> consumeResult, CancellationToken cancellationToken)
+    {
+        BookingConfirmed? booking;
+        try
+        {
+            booking = JsonSerializer.Deserialize<BookingConfirmed>(consumeResult.Message.Value);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Booking deserialize error");
+            return;
+        }
+
+        if (booking is null)
+        {
+            _logger.LogWarning("Booking deserialize result is null");
+            return;
+        }  
+
+        using var scope = _scopeFactory.CreateScope();
+        var eventsRepository = scope.ServiceProvider.GetRequiredService<IEventsRepository>();
+
+        var eventItem = await eventsRepository.GetEventByIdAsync(booking.EventId, cancellationToken);
+
+        if (eventItem is null)
+        {
+            _logger.LogWarning("Event id: {eventId} not found", booking.EventId);
+            return;
+        }
+
+        if (eventItem.AlreadyStarted())
+        {
+            _logger.LogWarning("Event id: {eventId} already started", booking.EventId);
+            return;
+        }
+
+        if (!eventItem.TryReserveSeats())
+        {
+            _logger.LogWarning("Event id: {eventId} has no available seats", booking.EventId);
+            return;
+        }
+
+        await eventsRepository.ChangeEventAsync(eventItem, cancellationToken);
+        await eventsRepository.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Booking event id: {eventId} succeeded", booking.EventId);
     }
 
     public override void Dispose()
