@@ -1,0 +1,11 @@
+using Users.Domain;
+
+namespace Users.Application;
+
+public interface IUsersRepository
+{
+    Task<User?> GetUserByIdAsync(Guid userId, CancellationToken ct = default);
+    Task<User?> GetUserByLoginAsync(string login, CancellationToken ct = default);
+    Task AddUserAsync(User item, CancellationToken ct = default);
+    Task SaveChangesAsync(CancellationToken ct = default);
+} 

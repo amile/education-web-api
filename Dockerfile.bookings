@@ -1,0 +1,26 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY ["Contracts/Contracts.csproj", "Contracts/"]
+COPY ["Bookings/Bookings.Presentation/Bookings.Presentation.csproj", "Bookings/Bookings.Presentation/"]
+COPY ["Bookings/Bookings.Application/Bookings.Application.csproj", "Bookings/Bookings.Application/"]
+COPY ["Bookings/Bookings.Domain/Bookings.Domain.csproj", "Bookings/Bookings.Domain/"]
+COPY ["Bookings/Bookings.Infrastructure/Bookings.Infrastructure.csproj", "Bookings/Bookings.Infrastructure/"]
+
+RUN dotnet restore "Bookings/Bookings.Presentation/Bookings.Presentation.csproj"
+COPY . .
+WORKDIR "/src/Bookings/Bookings.Presentation"
+RUN dotnet build "Bookings.Presentation.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Bookings.Presentation.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Bookings.Presentation.dll"]

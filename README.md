@@ -6,21 +6,18 @@
 * [Docker](https://www.docker.com) 
 
 # Структура приложения
-Приложение разделено на несколько логических уровней:
-Первый уровень — презентационный, в данном случае EducationWebApi — располагаются презентационные модели и контроллеры. Он же является точкой входа в приложение.
-EducationWebApi.Domain — ядро домена. Здесь находятся бизнес-сущности приложения.
-EducationWebApi.Application — содержит логику работы с бизнес-сущностями для решения бизнес задач.
-EducationWebApi.Infrastructure - инфраструктурный слой. На данном уровне описана логика взаимодействия с базой данных.
-EducationWebApi.IntegrationTests - интерграционные тесты. Проверяют корректность взаимодействия с базой данных.
-EducationWebApi.Tests - unit-тесты. Проверяют логику работы сервисов.
+Приложение разделено на несколько сервисов:
+Users - отвечает за создание и аутентификацию пользователей.
+Events - работа с событиями.
+Bookings - функционал для управления бронированием.
 
 # Взаимодействие с базой данных
-Для работы приложения необходим доступ к базе данных PostgreSQL
-В проекте по умолчанию база разворачивается в docker контейнере, 
-настройки для подключения к базе прописаны в файле appsettings.json, блоке "ConnectionStrings" -> "Default"
+Для каждого сервиса необходим доступ к базе данных PostgreSQL 
+В сервисе настройки для подключения к базе прописаны в файле appsettings.json, блоке "ConnectionStrings" -> "Default"
+В проекте по умолчанию базы разворачивается в docker контейнере
 
 # Создание миграций:
-dotnet ef migrations add {MigrationName} --project EducationWebApi.Infrastructure --startup-project EducationWebApi
+dotnet ef migrations add {MigrationName} --project {ServiceName}.Infrastructure --startup-project {ServiceName}.Presentation
 
 # Применение миграций:
 dotnet ef database update
@@ -32,18 +29,18 @@ dotnet ef database update
 git clone https://github.com/amile/education-web-api.git
 cd education-web-api
 docker compose up -d
-dotnet build
-dotnet run
 ```
 
 ## Проверка работоспособности
-http://localhost:5003/health
+http://localhost:5003/health - users service
+http://localhost:5004/health - events service
+http://localhost:5005/health - bookings service
 
 ## Swagger
-http://localhost:5003/swagger
+{serviceHost}/swagger
 
 ## Запуск тестов
-dotnet test
+dotnet test (производится в директории каждого сервиса отдельно)
 
 Для unit тестов используется In-Memory Provider
 Для интеграционных тестов необходимо предварительно запустить docker 
@@ -57,14 +54,14 @@ dotnet test
 Конфигурация JWT токена по умолчанию прописана в файле appsettings.json, блоке "token".
 В production рекомендуется хранить конфигурацию в переменных окружения,
 защищенных конфигурационных файлах, специальных менеджерах секретов.
-Секрет для токена (TOKEN__SECRET) не прописан в appsettings.json, его необходимо добавить отдельно, например в переменные окружения.
+Секрет для токена (TOKEN__SECRET) необходимо добавить отдельно, например в переменные окружения.
 
 Для работы в Swagger также необходимо ввести токен аутентификации, методы получения токена описаны ниже.
 
 ## 🚀 API Endpoints
 
 ### Регистрация пользователя
-POST /users/auth/register
+POST {usersServiceHost}/auth/register
 
 #### Параметры тела запроса
 | Field | Type | Required | Description |
@@ -90,7 +87,7 @@ UserRole
 ```
 
 ### Вход пользователя в систему
-POST /users/auth/login
+POST {usersServiceHost}/auth/login
 
 #### Параметры тела запроса
 | Field | Type | Required | Description |
@@ -108,7 +105,7 @@ POST /users/auth/login
 ```
 
 ### Создание события
-POST /api/events - Auth Required
+POST {eventsServiceHost}/api/events - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** Admin
 
@@ -129,7 +126,7 @@ Guid a4c2c736-e466-49a5-b14d-fd7dc7488417
 При успешном создании события доступное количество мест для бронирования - availableSeats устанавливается равным totalSeats
 
 ### Получение пагинированного списка событий
-GET /api/events - Auth Required
+GET {eventsServiceHost}/api/events - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** User, Admin
 
@@ -164,7 +161,7 @@ PageSize: int - размер страницы пагинированного с�
 
 
 ### Получение информации о событии
-GET /api/events/{id} - Auth Required
+GET {eventsServiceHost}/api/events/{id} - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** User, Admin
 
@@ -198,7 +195,7 @@ id - Уникальный идентификатор события
 
 
 ### Редактирование события
-PUT /api/events/{id} - Auth Required
+PUT {eventsServiceHost}/api/events/{id} - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** Admin
 
@@ -240,7 +237,7 @@ id - Уникальный идентификатор события
 
 
 ### Удаление события
-DELETE /api/events/{id} - Auth Required
+DELETE {eventsServiceHost}/api/events/{id} - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** Admin
 
@@ -262,7 +259,7 @@ id - Уникальный идентификатор события
 
 
 ### Бронирование событий
-POST /api/events/{id}/book - Auth Required
+POST {bookingsServiceHost}/api/events/{id}/book - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** User, Admin
 
@@ -301,7 +298,7 @@ id - Уникальный идентификатор события
 ```
 
 ### Получение информации о бронировании
-GET /api/bookings/{id} - Auth Required
+GET {bookingsServiceHost}/api/bookings/{id} - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** User (for owner), Admin
 
@@ -332,7 +329,7 @@ id - Уникальный идентификатор бронирования
 ```
 
 ### Отмена бронирования
-DELETE /api/bookings/{id} - Auth Required
+DELETE {bookingsServiceHost}/api/bookings/{id} - Auth Required
 * **Headers:** `Authorization: Bearer <token>`
 * **Allowed Roles:** User (for owner), Admin
 
@@ -381,11 +378,9 @@ BookingStatus
     Rejected
 }
 
-Для бронирования необходимо отправить POST запрос на /api/events/{id}/book, где id - уникальный идентификатор события (метод описан выше)
-Если событие найдено, создается бронирование со статусом Pending
-Процесс бронирования осуществляется в фоновом сервисе BookingProcessService. 
-Данный сервис каждые четыре секунды запрашивает все бронирования в статусе Pending и далее в цикле отправляет запрос на бронирование.
-Если запрос успешно выполнен, статус меняется на Confirmed, в случае ошибки - Rejected. 
-Обновленное бронирование сохраняется в репозитории.
-Получить актуальную информацию о бронировании можно отправив GET запрос на /api/bookings/{id} (метод описан выше)
+Для бронирования необходимо отправить POST запрос на {bookingsServiceHost}/api/events/{id}/book, где id - уникальный идентификатор события (метод описан выше)
+Далее информация о бронировании отправляется в брокер сообщений Kafka
+В сервисе событий процесс бронирования осуществляется в фоновом сервисе BookingConsumerService. 
+Данный сервис читает сообщение из Kafka, проверяет существует ли событие с таким идентификатором, не началось ли событие, наличие свободных мест и при прохождении всех условий резервирует место для бронирования.
+Получить актуальную информацию о бронировании можно отправив GET запрос на {bookingsServiceHost}/api/bookings/{id} (метод описан выше)
 Если параллельно отправлено количество запросов на бронирование события превышающее количество доступных мест, то успешными пройдут только первые обработанные запросы по количеству доступных мест. Остальные запросы будут отклонены.
