@@ -16,6 +16,8 @@ public class EventsServiceTests
     {
         var dbName = Guid.NewGuid().ToString();
         var services = new ServiceCollection();
+        services.Configure<EventsCacheConfig>(_ => { });
+        services.AddSingleton<ICacheService, FakeCacheService>();
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(dbName));
         services.AddScoped<IEventsRepository, EventsRepository>();
