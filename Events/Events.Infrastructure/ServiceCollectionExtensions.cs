@@ -3,6 +3,7 @@ using Events.Application;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace Events.Infrastructure;
 
@@ -13,6 +14,7 @@ public static class ServiceCollectionExtensions
         AddDataAccess(sc, configuration);
         AddRepositories(sc);
         AddKafkaConsumer(sc, configuration);
+        AddCache(sc, configuration);
 
         return sc;
     }
@@ -44,6 +46,28 @@ public static class ServiceCollectionExtensions
 
         sc.AddHostedService<KafkaInitializerService>();
         sc.AddHostedService<BookingConsumerService>();
+
+        return sc;
+    }
+
+    public static IServiceCollection AddCache(this IServiceCollection sc, IConfiguration configuration)
+    {
+        var redisConfigSection = configuration.GetSection(RedisConstants.RedisSettingsSectionName);
+        var redisConfig = redisConfigSection.Get<RedisConfig>() ?? throw new ArgumentNullException("Redis config section is empty");
+        sc.Configure<RedisConfig>(redisConfigSection);
+
+        sc.AddSingleton<IConnectionMultiplexer>(
+            ConnectionMultiplexer.Connect(new ConfigurationOptions
+            {
+                EndPoints = { redisConfig.ConnectionString },
+                ConnectTimeout = redisConfig.ConnectRetry,
+                SyncTimeout = redisConfig.SyncTimeout,
+                AbortOnConnectFail = redisConfig.AbortOnConnectFail,
+                ConnectRetry = redisConfig.ConnectRetry,
+            }
+        ));
+
+        sc.AddSingleton<ICacheService, RedisCacheService>();
 
         return sc;
     }
