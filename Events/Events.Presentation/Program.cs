@@ -10,7 +10,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAuth(builder.Configuration);
 
-builder.Services.AddAppServices();
+builder.Services.AddAppServices(builder.Configuration);
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 );

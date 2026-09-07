@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Events.Application;
 using Microsoft.Extensions.Options;
+using Events.Domain;
 
 namespace Events.Infrastructure;
 
@@ -13,6 +14,7 @@ public class BookingConsumerService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IConsumer<string, string> _consumer;
+     private readonly ICacheService _cache;
     private readonly ILogger<BookingConsumerService> _logger;
 
     private const string ConsumerGroupId = "booking-processing";
@@ -20,10 +22,12 @@ public class BookingConsumerService : BackgroundService
     public BookingConsumerService(
         IOptions<KafkaConfig> options,
         IServiceScopeFactory scopeFactory,
+        ICacheService cache,
         ILogger<BookingConsumerService> logger
     )
     {
         _scopeFactory = scopeFactory;
+        _cache = cache;
         _logger = logger;
 
         var kafkaConfig = options.Value;
@@ -124,6 +128,10 @@ public class BookingConsumerService : BackgroundService
 
         await eventsRepository.ChangeEventAsync(eventItem, cancellationToken);
         await eventsRepository.SaveChangesAsync(cancellationToken);
+
+        await _cache.RemoveAsync(EventsCacheConstants.EventKey(booking.EventId), cancellationToken);
+        await _cache.RemoveAsync(EventsCacheConstants.TopEventsKey, cancellationToken);
+
         _logger.LogInformation("Booking event id: {eventId} succeeded", booking.EventId);
     }
 
