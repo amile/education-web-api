@@ -82,6 +82,26 @@ public class EventsRepositoryTests
     }
 
     [Fact]
+    public async Task GetTopEvents_Ok()
+    {
+        //Arrange
+        await _dbFixture.ResetDatabaseAsync();
+        await using var context = _dbFixture.CreateContext();
+        var repository = new EventsRepository(context);
+
+        var eventId1 = CreateEvent(context, "Event1", startAt: new DateTime(2026, 1, 1));
+        var eventId2 = CreateEvent(context, "Event2", startAt: new DateTime(2026, 1, 2));
+        var eventId3 = CreateEvent(context, "Event3", startAt: new DateTime(2026, 1, 3));
+        await repository.SaveChangesAsync();
+
+        //Act
+        var events = await repository.GetTopEventsAsync(2);
+
+        //Assert
+        Assert.Equal(2, events.Count());
+    }
+
+    [Fact]
     public async Task GetAllEvents_Ok()
     {
         //Arrange

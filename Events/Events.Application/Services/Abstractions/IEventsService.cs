@@ -3,6 +3,7 @@ namespace Events.Application;
 public interface IEventsService
 {
     Task<PaginatedResultDto<EventDto>> GetEventsAsync(EventFilterDto filter, PagingRequestDto pagingRequest, CancellationToken ct = default);
+    Task<EventDto[]> GetTopEventsAsync(CancellationToken ct = default);
     Task<EventDto> GetEventAsync(Guid id, CancellationToken ct = default);
     Task<EventDto> AddEventAsync(CreateEventRequestDto item, CancellationToken ct = default);
     Task<EventDto> ChangeEventAsync(Guid id, UpdateEventRequestDto item, CancellationToken ct = default);

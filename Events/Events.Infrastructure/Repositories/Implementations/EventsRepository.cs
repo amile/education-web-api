@@ -45,6 +45,17 @@ public class EventsRepository : IEventsRepository
         return new PaginatedResult<Event>(items, filteredItemsResult.Count, pagingRequest.Page, items.Length);
     }
 
+    public async Task<Event[]> GetTopEventsAsync(int count, CancellationToken ct = default)
+    {
+        var items = await _dbContext.Events
+            .Where(item => item.TotalSeats > 0)
+            .OrderByDescending(item => (item.TotalSeats - item.AvailableSeats) * 1.0 / item.TotalSeats)
+            .Take(count)
+            .ToArrayAsync(ct);
+    
+        return items.Select(EventFactory.FromDb).ToArray();
+    }
+
     public async Task<Event?> GetEventByIdAsync(Guid id, CancellationToken ct = default)
     {
         var dbEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
