@@ -28,6 +28,7 @@ public class EventsController : ControllerBase
         return await _eventsService.GetEventsAsync(filter, pagingRequest);
     }
 
+    [AllowAnonymous]
     [HttpGet("top")]
     public async Task<ActionResult<EventDto[]>> GetTopEvents()
     {

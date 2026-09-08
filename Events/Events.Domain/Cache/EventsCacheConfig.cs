@@ -2,8 +2,8 @@ namespace Events.Domain;
 
 public class EventsCacheConfig
 {
-    public TimeSpan EventTtl { get; set; } = TimeSpan.FromSeconds(20);
-    public TimeSpan TopEventsTtl { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan EventTtl { get; set; } = TimeSpan.FromMinutes(20);
+    public TimeSpan TopEventsTtl { get; set; } = TimeSpan.FromMinutes(10);
 
     public EventsCacheConfig()
     {}
